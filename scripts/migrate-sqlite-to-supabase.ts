@@ -73,7 +73,8 @@ async function runMigration() {
       '004_seed_data.sql',
       '005_rls_policies.sql',
       '006_marketplace_transaction_workflow.sql',
-      '007_logistics_marketplace.sql'
+      '007_logistics_marketplace.sql',
+      '008_market_intelligence.sql'
     ]
 
     for (const file of migrationFiles) {

@@ -627,26 +627,55 @@ export default function SellProduceWizard() {
                 </p>
               </div>
 
-              {/* Mandi Benchmark Info Strip */}
-              <div className="rounded-2xl bg-amber-50 p-4 border border-amber-200 text-amber-950 dark:bg-amber-950/40 dark:border-amber-900 dark:text-amber-200">
+              {/* Mandi Benchmark Info Strip with Live Agmarknet & Forecast Context */}
+              <div className="rounded-2xl bg-gradient-to-r from-amber-50 to-emerald-50 dark:from-amber-950/40 dark:to-emerald-950/30 p-4 border border-amber-200/80 dark:border-amber-900/60 text-slate-800 dark:text-slate-100 shadow-xs">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-amber-600" />
-                    <span className="text-xs font-bold">Official Market Rates for {currentCrop?.name || 'Selected Crop'}:</span>
+                    <TrendingUp className="h-4 w-4 text-emerald-600" />
+                    <span className="text-xs font-bold text-slate-900 dark:text-white">
+                      Official Agmarknet Mandi Benchmark ({currentCrop?.name || 'Selected Crop'}):
+                    </span>
                   </div>
-                  <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300">Live Today</span>
+                  <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full">
+                    Live Mandi Feed
+                  </span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-4 text-xs">
-                  <div>
-                    <span className="text-amber-700 dark:text-amber-400">Current APMC Mandi Modal:</span>{' '}
-                    <strong>₹{currentCrop?.avgMandiPricePerUnit.toLocaleString('en-IN') || 1000} /{unit.split(' ')[0]}</strong>
+
+                <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                  <div className="rounded-xl bg-white/80 dark:bg-slate-900/60 p-2.5 border border-slate-200/60 dark:border-slate-800">
+                    <span className="text-[11px] text-slate-500 block">APMC Mandi Modal Rate:</span>
+                    <strong className="text-sm font-black text-slate-900 dark:text-white">
+                      ₹{currentCrop?.avgMandiPricePerUnit.toLocaleString('en-IN') || 1000} /{unit.split(' ')[0]}
+                    </strong>
                   </div>
+
                   {currentCrop?.mspPricePerUnit && (
-                    <div>
-                      <span className="text-amber-700 dark:text-amber-400">Govt MSP Price:</span>{' '}
-                      <strong className="text-emerald-700 dark:text-emerald-300">₹{currentCrop.mspPricePerUnit.toLocaleString('en-IN')} /{unit.split(' ')[0]}</strong>
+                    <div className="rounded-xl bg-white/80 dark:bg-slate-900/60 p-2.5 border border-slate-200/60 dark:border-slate-800">
+                      <span className="text-[11px] text-slate-500 block">Govt MSP Floor:</span>
+                      <strong className="text-sm font-black text-emerald-700 dark:text-emerald-400">
+                        ₹{currentCrop.mspPricePerUnit.toLocaleString('en-IN')} /{unit.split(' ')[0]}
+                      </strong>
                     </div>
                   )}
+
+                  <div className="rounded-xl bg-white/80 dark:bg-slate-900/60 p-2.5 border border-slate-200/60 dark:border-slate-800 flex flex-col justify-between">
+                    <span className="text-[11px] text-slate-500 block">Unsure When to Sell?</span>
+                    <Link
+                      href="/market/advisor"
+                      target="_blank"
+                      className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline flex items-center gap-1"
+                    >
+                      <span>Check Sell/Hold Advisor</span>
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                </div>
+
+                <div className="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+                  <span>💡 Tip: Setting asking price within 5-10% of mandi modal attracts direct buyers within 24 hours.</span>
+                  <Link href="/market" target="_blank" className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline">
+                    View Mandi Comparison →
+                  </Link>
                 </div>
               </div>
 

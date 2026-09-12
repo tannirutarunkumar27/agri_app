@@ -1,11 +1,41 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg'
 
-// Environment connection variables for Supabase PostgreSQL
-const connectionString =
-  process.env.SUPABASE_DATABASE_URL ||
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_URL ||
-  ''
+function getConnectionString(): string {
+  if (
+    !process.env.SUPABASE_DATABASE_URL &&
+    !process.env.POSTGRES_URL &&
+    !process.env.DATABASE_URL &&
+    typeof process !== 'undefined'
+  ) {
+    try {
+      const fs = require('node:fs')
+      const path = require('node:path')
+      const envLocal = path.resolve(process.cwd(), '.env.local')
+      if (fs.existsSync(envLocal)) {
+        const content = fs.readFileSync(envLocal, 'utf8')
+        for (const line of content.split('\n')) {
+          const trimmed = line.trim()
+          if (!trimmed || trimmed.startsWith('#')) continue
+          const eqIdx = trimmed.indexOf('=')
+          if (eqIdx > 0) {
+            const key = trimmed.slice(0, eqIdx).trim()
+            const val = trimmed.slice(eqIdx + 1).trim().replace(/^["'](.*)["']$/, '$1')
+            if (!process.env[key]) process.env[key] = val
+          }
+        }
+      }
+    } catch {
+      // Ignored if fs not available in edge
+    }
+  }
+
+  return (
+    process.env.SUPABASE_DATABASE_URL ||
+    process.env.POSTGRES_URL ||
+    process.env.DATABASE_URL ||
+    ''
+  )
+}
 
 // Global pool instance to prevent connection exhaustion in Next.js hot-reloading
 declare global {
@@ -14,6 +44,7 @@ declare global {
 }
 
 function createPool(): Pool {
+  const connectionString = getConnectionString()
   if (!connectionString) {
     console.warn(
       '[FarmOS DB] No database connection string detected. Please set SUPABASE_DATABASE_URL in .env.local to connect to your Supabase PostgreSQL database.'
