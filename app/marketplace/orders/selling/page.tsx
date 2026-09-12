@@ -39,9 +39,64 @@ export default function FarmerSellingOrdersPage() {
   const [actionSubmitting, setActionSubmitting] = useState(false)
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
+  // Transporter Quotes Modal State
+  const [assignModalJob, setAssignModalJob] = useState<any | null>(null)
+  const [jobBids, setJobBids] = useState<any[]>([])
+  const [loadingBids, setLoadingBids] = useState(false)
+  const [assigningBidId, setAssigningBidId] = useState<string | null>(null)
+
   // Expand Offer History State
   const [expandedOfferId, setExpandedOfferId] = useState<string | null>(null)
   const [offerHistory, setOfferHistory] = useState<any[]>([])
+
+  const handleOpenAssignModal = async (job: any) => {
+    setAssignModalJob(job)
+    setLoadingBids(true)
+    try {
+      const res = await fetch(`/api/marketplace/logistics/jobs/${job.id}/bids`)
+      const data = await res.json()
+      if (data.success) {
+        setJobBids(data.bids || [])
+      } else {
+        setFeedbackMsg({ type: 'error', text: data.error || 'Failed to load quotes.' })
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err.message || 'Error fetching bids.' })
+    } finally {
+      setLoadingBids(false)
+    }
+  }
+
+  const handleAssignTransporter = async (bid: any) => {
+    if (!assignModalJob) return
+    if (!confirm(`Confirm assigning ${bid.transporterName} at ₹${bid.proposedPrice} for freight?`)) return
+
+    setAssigningBidId(bid.id)
+    setFeedbackMsg(null)
+    try {
+      const res = await fetch(`/api/marketplace/logistics/jobs/${assignModalJob.id}/assign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bidId: bid.id,
+          vehicleId: bid.vehicleId
+        })
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setFeedbackMsg({ type: 'success', text: `Transporter ${bid.transporterName} assigned! Freight locked at ₹${bid.proposedPrice}.` })
+        setAssignModalJob(null)
+        await fetchData()
+      } else {
+        setFeedbackMsg({ type: 'error', text: data.error || 'Failed to assign transporter.' })
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err.message || 'Error assigning transporter.' })
+    } finally {
+      setAssigningBidId(null)
+    }
+  }
 
   useEffect(() => {
     fetchData()
@@ -868,6 +923,78 @@ export default function FarmerSellingOrdersPage() {
                             </div>
                           </div>
 
+                          {/* Transporter Logistics Section if 3rd Party Delivery */}
+                          {order.deliveryJob && (
+                            <div className="mt-3 rounded-2xl bg-indigo-50/70 p-3.5 border border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-900/60">
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Truck className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+                                  <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                                    Transporter Logistics Service
+                                  </span>
+                                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300">
+                                    {order.deliveryJob.status.replace(/_/g, ' ')}
+                                  </span>
+                                </div>
+
+                                {(order.deliveryJob.status === 'OPEN' || order.deliveryJob.status === 'QUOTED') && (
+                                  <button
+                                    onClick={() => handleOpenAssignModal(order.deliveryJob)}
+                                    className="rounded-xl bg-indigo-600 px-3 py-1.5 text-xs font-black text-white hover:bg-indigo-700 flex items-center gap-1.5 shadow-xs active:scale-95"
+                                  >
+                                    <span>Review Quotes ({order.deliveryJob.bidsCount || 0})</span>
+                                    <ArrowRight className="h-3 w-3" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  <span className="text-slate-500">Logistics Route: </span>
+                                  <span className="font-semibold text-slate-800 dark:text-slate-200">Farm Gate → Buyer Destination</span>
+                                  <div className="text-[11px] text-slate-500">
+                                    Calculated Freight Benchmark: <span className="font-bold text-slate-700 dark:text-slate-300">₹{order.deliveryJob.estimatedCost.toLocaleString('en-IN')}</span>
+                                  </div>
+                                </div>
+
+                                {order.deliveryJob.transporterName ? (
+                                  <div className="space-y-0.5">
+                                    <div>
+                                      <span className="text-slate-500">Assigned Carrier: </span>
+                                      <span className="font-black text-indigo-900 dark:text-indigo-300">{order.deliveryJob.transporterName}</span>
+                                      <span className="ml-1 text-[11px] text-amber-600 font-bold">★ {order.deliveryJob.transporterRating?.toFixed(1) || '5.0'}</span>
+                                    </div>
+                                    <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                      Vehicle: <span className="font-mono font-bold">{order.deliveryJob.vehicleRegistration || 'Assigned Fleet'}</span> ({order.deliveryJob.vehicleType || 'Truck'})
+                                    </div>
+                                    <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                      Agreed Freight: <span className="font-bold text-emerald-700 dark:text-emerald-400">₹{order.deliveryJob.agreedCost.toLocaleString('en-IN')}</span>
+                                    </div>
+                                    {order.deliveryJob.proofOfDeliveryUrl && (
+                                      <div className="pt-1">
+                                        <a
+                                          href={order.deliveryJob.proofOfDeliveryUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="text-xs font-bold text-indigo-600 hover:underline inline-flex items-center gap-1"
+                                        >
+                                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                          <span>View Delivery Proof Photo</span>
+                                        </a>
+                                      </div>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="text-slate-500 italic text-[11px] flex items-center">
+                                    {order.deliveryJob.bidsCount > 0
+                                      ? `${order.deliveryJob.bidsCount} transporter quote(s) received. Click "Review Quotes" to assign.`
+                                      : 'Job is listed on the Transporter Marketplace. Awaiting carrier quotes.'}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Order Footer */}
                           {!isCompleted && !isCancelled && (
                             <div className="mt-4 flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -980,6 +1107,99 @@ export default function FarmerSellingOrdersPage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* TRANSPORTER QUOTE REVIEW & ASSIGNMENT MODAL */}
+      {assignModalJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 dark:text-white max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Truck className="h-5 w-5 text-indigo-600" />
+                  <h3 className="text-base font-black">Transporter Bids & Quotes</h3>
+                </div>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Select the best transporter based on verified ratings, vehicle capacity, and freight rates.
+                </p>
+              </div>
+              <button
+                onClick={() => setAssignModalJob(null)}
+                className="rounded-full p-1.5 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            {loadingBids ? (
+              <div className="py-12 text-center text-xs text-slate-500">
+                <RefreshCw className="h-6 w-6 animate-spin mx-auto text-indigo-600 mb-2" />
+                Loading quotes...
+              </div>
+            ) : jobBids.length === 0 ? (
+              <div className="py-10 text-center">
+                <Truck className="h-10 w-10 text-slate-300 mx-auto mb-2" />
+                <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">No Bids Submitted Yet</h4>
+                <p className="text-[11px] text-slate-500 mt-1 max-w-sm mx-auto">
+                  This job is listed on the marketplace for certified transporters. As soon as carriers submit quotes, they will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-4 space-y-3">
+                {jobBids.map((bid) => (
+                  <div
+                    key={bid.id}
+                    className="p-4 rounded-2xl border border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-800/60 hover:border-indigo-300 transition"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">
+                            {bid.transporterName}
+                          </span>
+                          {bid.isVerified && (
+                            <span className="inline-flex items-center gap-0.5 text-[10px] font-black text-emerald-700 bg-emerald-100 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded-full">
+                              <ShieldCheck className="h-3 w-3" /> Verified
+                            </span>
+                          )}
+                          <span className="text-xs font-bold text-amber-600">
+                            ★ {bid.transporterRating?.toFixed(1) || '5.0'}
+                          </span>
+                        </div>
+
+                        <div className="mt-1 text-xs text-slate-600 dark:text-slate-400 space-y-0.5">
+                          <div>
+                            Vehicle: <span className="font-semibold">{bid.vehicleType || 'Truck'}</span> ({bid.vehicleRegistration || 'Fleet unit'})
+                          </div>
+                          {bid.estimatedTransitHours && (
+                            <div>Estimated Transit: <span className="font-semibold">{bid.estimatedTransitHours} hrs</span></div>
+                          )}
+                          {bid.notes && (
+                            <p className="text-[11px] italic text-slate-500 mt-1">"{bid.notes}"</p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="text-right shrink-0">
+                        <div className="text-lg font-black text-emerald-700 dark:text-emerald-400">
+                          ₹{bid.proposedPrice.toLocaleString('en-IN')}
+                        </div>
+                        <div className="text-[10px] text-slate-400">Fixed Freight Quote</div>
+                        <button
+                          onClick={() => handleAssignTransporter(bid)}
+                          disabled={assigningBidId === bid.id}
+                          className="mt-2 rounded-xl bg-indigo-600 px-4 py-1.5 text-xs font-black text-white hover:bg-indigo-700 active:scale-95 disabled:opacity-50"
+                        >
+                          {assigningBidId === bid.id ? 'Assigning...' : 'Assign Job'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

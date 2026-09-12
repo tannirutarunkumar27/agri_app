@@ -327,6 +327,21 @@ export async function PATCH(request: Request, props: Params) {
           [orderId]
         )
 
+        // 2b. Sync associated delivery_jobs if exists
+        const deliveryJobs = await tx.query<any>('SELECT id, transporter_id FROM delivery_jobs WHERE produce_order_id = $1', [orderId])
+        if (deliveryJobs.length > 0) {
+          const dj = deliveryJobs[0]
+          await tx.execute(`UPDATE delivery_jobs SET delivery_status = 'COMPLETED', updated_at = NOW() WHERE id = $1`, [dj.id])
+          await tx.execute(
+            `INSERT INTO delivery_status_log (delivery_job_id, previous_status, new_status, changed_by, reason, created_at)
+             VALUES ($1, 'DELIVERED', 'COMPLETED', $2, 'Buyer confirmed receipt. Job finalized.', NOW())`,
+            [dj.id, currentUserId]
+          )
+          if (dj.transporter_id) {
+            await tx.execute(`UPDATE transporters SET total_completed_jobs = total_completed_jobs + 1, updated_at = NOW() WHERE id = $1`, [dj.transporter_id])
+          }
+        }
+
         // 3. Log status transition
         await tx.execute(
           `INSERT INTO produce_order_status_log (
@@ -405,6 +420,15 @@ export async function PATCH(request: Request, props: Params) {
                updated_at = NOW()
            WHERE id = $3`,
           [currentUserId, reason || 'Order cancelled.', orderId]
+        )
+
+        // 3b. Sync delivery_jobs cancellation if exists
+        await tx.execute(
+          `UPDATE delivery_jobs
+           SET delivery_status = 'CANCELLED',
+               updated_at = NOW()
+           WHERE produce_order_id = $1 AND delivery_status NOT IN ('DELIVERED', 'COMPLETED')`,
+          [orderId]
         )
 
         // 4. Log status change

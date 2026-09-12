@@ -19,7 +19,8 @@ import {
   MessageSquare,
   XCircle,
   CreditCard,
-  AlertTriangle
+  AlertTriangle,
+  Star
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
@@ -42,8 +43,51 @@ export default function BuyerPurchasingOrdersPage() {
   const [disputeCategory, setDisputeCategory] = useState<string>('Quality below agreed grade')
   const [disputeReason, setDisputeReason] = useState<string>('')
 
+  // Rate Transporter Modal State
+  const [ratingModalJob, setRatingModalJob] = useState<any | null>(null)
+  const [transporterRating, setTransporterRating] = useState<number>(5)
+  const [onTimeDelivery, setOnTimeDelivery] = useState<boolean>(true)
+  const [produceCondition, setProduceCondition] = useState<string>('EXCELLENT')
+  const [ratingFeedback, setRatingFeedback] = useState<string>('')
+  const [ratingSubmitting, setRatingSubmitting] = useState<boolean>(false)
+
   const [actionSubmitting, setActionSubmitting] = useState(false)
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const handleSubmitRating = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!ratingModalJob) return
+
+    setRatingSubmitting(true)
+    setFeedbackMsg(null)
+    try {
+      const res = await fetch('/api/marketplace/logistics/ratings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          deliveryJobId: ratingModalJob.id,
+          transporterId: ratingModalJob.transporterId,
+          rating: transporterRating,
+          feedback: ratingFeedback,
+          onTimeDelivery,
+          produceCondition
+        })
+      })
+
+      const data = await res.json()
+      if (data.success) {
+        setFeedbackMsg({ type: 'success', text: 'Thank you! Transporter review and rating recorded.' })
+        setRatingModalJob(null)
+        await fetchData()
+      } else {
+        setFeedbackMsg({ type: 'error', text: data.error || 'Failed to submit rating.' })
+      }
+    } catch (err: any) {
+      setFeedbackMsg({ type: 'error', text: err.message || 'Error submitting rating.' })
+    } finally {
+      setRatingSubmitting(false)
+    }
+  }
 
   useEffect(() => {
     fetchData()
@@ -797,6 +841,86 @@ export default function BuyerPurchasingOrdersPage() {
                             </div>
                           </div>
 
+                          {/* Transporter Details & Delivery Proof */}
+                          {order.deliveryJob && (
+                            <div className="mt-3 rounded-2xl bg-indigo-50/70 p-3.5 border border-indigo-200 dark:bg-indigo-950/40 dark:border-indigo-900/60">
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                                <div className="flex items-center gap-2">
+                                  <Truck className="h-4 w-4 text-indigo-700 dark:text-indigo-400" />
+                                  <span className="text-xs font-bold text-indigo-950 dark:text-indigo-200">
+                                    Transporter Logistics
+                                  </span>
+                                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300">
+                                    {order.deliveryJob.status.replace(/_/g, ' ')}
+                                  </span>
+                                </div>
+
+                                {isCompleted && !order.deliveryJob.isRated && order.deliveryJob.transporterId && (
+                                  <button
+                                    onClick={() => {
+                                      setRatingModalJob(order.deliveryJob)
+                                      setTransporterRating(5)
+                                      setOnTimeDelivery(true)
+                                      setProduceCondition('EXCELLENT')
+                                      setRatingFeedback('')
+                                    }}
+                                    className="rounded-xl bg-amber-500 hover:bg-amber-600 px-3 py-1.5 text-xs font-bold text-white flex items-center gap-1 shadow-xs active:scale-95"
+                                  >
+                                    <Star className="h-3.5 w-3.5 fill-current" />
+                                    <span>Rate Transporter</span>
+                                  </button>
+                                )}
+
+                                {order.deliveryJob.isRated && (
+                                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                                    <CheckCircle2 className="h-3 w-3" /> Transporter Rated
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="grid sm:grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  <span className="text-slate-500">Carrier Service: </span>
+                                  {order.deliveryJob.transporterName ? (
+                                    <span className="font-bold text-indigo-950 dark:text-indigo-200">
+                                      {order.deliveryJob.transporterName}
+                                      <span className="ml-1 text-[11px] text-amber-600 font-bold">★ {order.deliveryJob.transporterRating?.toFixed(1) || '5.0'}</span>
+                                    </span>
+                                  ) : (
+                                    <span className="italic text-slate-500">Transporter matching in progress</span>
+                                  )}
+                                  {order.deliveryJob.transporterPhone && (
+                                    <div className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
+                                      <PhoneCall className="h-3 w-3" />
+                                      <span>+91 {order.deliveryJob.transporterPhone}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="space-y-0.5">
+                                  {order.deliveryJob.vehicleRegistration && (
+                                    <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                                      Vehicle: <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{order.deliveryJob.vehicleRegistration}</span> ({order.deliveryJob.vehicleType || 'Truck'})
+                                    </div>
+                                  )}
+                                  {order.deliveryJob.proofOfDeliveryUrl && (
+                                    <div className="pt-1">
+                                      <a
+                                        href={order.deliveryJob.proofOfDeliveryUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs font-bold text-indigo-600 hover:underline inline-flex items-center gap-1"
+                                      >
+                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                        <span>View Proof of Delivery Photo</span>
+                                      </a>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
                           {/* Footer: Dispute & Cancellation */}
                           {!isCompleted && !isCancelled && (
                             <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -989,6 +1113,119 @@ export default function BuyerPurchasingOrdersPage() {
                   className="rounded-xl bg-rose-700 px-5 py-2 font-bold text-white shadow-md hover:bg-rose-800 transition disabled:opacity-50"
                 >
                   {actionSubmitting ? 'Submitting...' : 'Submit Dispute'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* RATE TRANSPORTER MODAL */}
+      {ratingModalJob && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 dark:text-white">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+              <div>
+                <h3 className="text-base font-bold flex items-center gap-1.5">
+                  <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                  Rate Transporter Service
+                </h3>
+                <p className="text-xs text-slate-500">
+                  {ratingModalJob.transporterName || 'Carrier'}
+                </p>
+              </div>
+              <button
+                onClick={() => setRatingModalJob(null)}
+                className="rounded-full p-1 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitRating} className="mt-4 space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-2">
+                  Overall Rating:
+                </label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setTransporterRating(star)}
+                      className="p-1 text-amber-400 hover:scale-110 transition"
+                    >
+                      <Star
+                        className={`h-7 w-7 ${
+                          star <= transporterRating
+                            ? 'text-amber-500 fill-amber-500'
+                            : 'text-slate-300 dark:text-slate-700'
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-2 font-black text-sm text-slate-700 dark:text-slate-300">
+                    {transporterRating} / 5 Stars
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Produce Condition upon Arrival:
+                </label>
+                <select
+                  value={produceCondition}
+                  onChange={(e) => setProduceCondition(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                >
+                  <option value="EXCELLENT">Excellent - Fresh & Undamaged</option>
+                  <option value="GOOD">Good - Acceptable Condition</option>
+                  <option value="FAIR">Fair - Minor Bruising/Wear</option>
+                  <option value="DAMAGED">Damaged - Transit Quality Loss</option>
+                </select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="onTimeCheckbox"
+                  checked={onTimeDelivery}
+                  onChange={(e) => setOnTimeDelivery(e.target.checked)}
+                  className="h-4 w-4 rounded text-emerald-600"
+                />
+                <label htmlFor="onTimeCheckbox" className="font-semibold text-slate-700 dark:text-slate-300">
+                  Delivered on time according to schedule
+                </label>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  Comments & Feedback:
+                </label>
+                <textarea
+                  rows={3}
+                  value={ratingFeedback}
+                  onChange={(e) => setRatingFeedback(e.target.value)}
+                  placeholder="Driver professionalism, cargo handling, timely communication..."
+                  className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-medium text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setRatingModalJob(null)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={ratingSubmitting}
+                  className="rounded-xl bg-amber-500 px-5 py-2 font-bold text-white shadow-md hover:bg-amber-600 disabled:opacity-50"
+                >
+                  {ratingSubmitting ? 'Submitting...' : 'Submit Rating'}
                 </button>
               </div>
             </form>

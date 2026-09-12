@@ -25,10 +25,27 @@ export async function GET(request: Request) {
         p.id as payment_id,
         p.payment_provider,
         p.transaction_reference,
-        p.payment_status as payment_record_status
+        p.payment_status as payment_record_status,
+        dj.id as delivery_job_id,
+        dj.delivery_status as job_delivery_status,
+        dj.transporter_id as job_transporter_id,
+        dj.assigned_vehicle_id as job_assigned_vehicle_id,
+        dj.estimated_cost as job_estimated_cost,
+        dj.agreed_cost as job_agreed_cost,
+        dj.proof_of_delivery_url as job_proof_of_delivery_url,
+        t.business_name as transporter_business_name,
+        t.phone as transporter_phone,
+        t.rating as transporter_rating,
+        v.registration_number as vehicle_registration,
+        v.vehicle_type as vehicle_type,
+        (SELECT COUNT(*) FROM delivery_bids b WHERE b.delivery_job_id = dj.id) as job_bids_count,
+        (SELECT id FROM transporter_ratings tr WHERE tr.delivery_job_id = dj.id LIMIT 1) as rating_id
       FROM produce_orders o
       LEFT JOIN market_listings l ON o.listing_id = l.id
       LEFT JOIN marketplace_payments p ON p.order_id = o.id
+      LEFT JOIN delivery_jobs dj ON dj.produce_order_id = o.id
+      LEFT JOIN transporters t ON dj.transporter_id = t.id
+      LEFT JOIN transporter_vehicles v ON dj.assigned_vehicle_id = v.id
       WHERE 1=1
     `
     const params: any[] = []
@@ -123,6 +140,23 @@ export async function GET(request: Request) {
               provider: r.payment_provider,
               reference: r.transaction_reference,
               status: r.payment_record_status
+            }
+          : null,
+        deliveryJob: r.delivery_job_id
+          ? {
+              id: r.delivery_job_id,
+              status: r.job_delivery_status,
+              transporterId: r.job_transporter_id,
+              transporterName: r.transporter_business_name,
+              transporterPhone: r.transporter_phone,
+              transporterRating: Number(r.transporter_rating || 5.0),
+              vehicleRegistration: r.vehicle_registration,
+              vehicleType: r.vehicle_type,
+              proofOfDeliveryUrl: r.job_proof_of_delivery_url,
+              estimatedCost: Number(r.job_estimated_cost || 0),
+              agreedCost: Number(r.job_agreed_cost || 0),
+              bidsCount: Number(r.job_bids_count || 0),
+              isRated: Boolean(r.rating_id)
             }
           : null
       }

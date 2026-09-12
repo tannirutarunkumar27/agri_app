@@ -132,6 +132,11 @@ export default function MarketplacePage() {
                 <span>Buyer Desk</span>
                 <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[10px] font-black text-blue-800 dark:bg-blue-950 dark:text-blue-300">Escrow</span>
               </Link>
+              <Link href="/transporter/dashboard" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                <Truck className="h-3.5 w-3.5 text-indigo-600" />
+                <span>Transporters</span>
+                <span className="rounded-full bg-indigo-100 px-1.5 py-0.2 text-[10px] font-black text-indigo-800 dark:bg-indigo-950 dark:text-indigo-300">Logistics</span>
+              </Link>
               <Link href="/store" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800">
                 Fertile Store
               </Link>

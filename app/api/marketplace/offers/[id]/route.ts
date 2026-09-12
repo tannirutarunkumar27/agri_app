@@ -386,6 +386,38 @@ export async function PATCH(request: Request, props: Params) {
           [paymentId, orderId, totalAmount, `TXN-DEV-${Date.now()}`]
         )
 
+        // 7b. If delivery method is TRANSPORTER, create delivery job
+        if (deliveryMethod === 'TRANSPORTER') {
+          const jobId = `job-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
+          await tx.execute(
+            `INSERT INTO delivery_jobs (
+              id, produce_order_id, pickup_location, delivery_location, cargo_crop_name,
+              cargo_quantity, cargo_unit, pickup_date, distance_km, estimated_cost,
+              delivery_status, created_at, updated_at
+            ) VALUES (
+              $1, $2, $3, $4, $5,
+              $6, $7, $8, 65.00, 2800.00,
+              'OPEN', NOW(), NOW()
+            )`,
+            [
+              jobId,
+              orderId,
+              pickupAddress,
+              deliveryAddressJson || JSON.stringify({ district: listing.seller_district || 'Pune', state: listing.seller_state || 'Maharashtra' }),
+              listing.crop_name,
+              agreedQuantity,
+              listing.unit,
+              body.preferredDeliveryDate || null
+            ]
+          )
+          await tx.execute(
+            `INSERT INTO delivery_status_log (
+              delivery_job_id, previous_status, new_status, changed_by, reason, created_at
+            ) VALUES ($1, NULL, 'OPEN', $2, 'Delivery job generated for third-party transport.', NOW())`,
+            [jobId, currentUserId]
+          )
+        }
+
         // 8. Send Notifications to both farmer and buyer
         await tx.execute(
           `INSERT INTO notifications (id, user_id, title, message, type, link)

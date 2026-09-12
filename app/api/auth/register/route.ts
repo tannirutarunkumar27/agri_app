@@ -61,13 +61,17 @@ export async function POST(request: Request) {
       }
     }
 
-    const userId = `farmer-${Date.now()}`
+    const cleanRole = ['transporter', 'buyer', 'admin'].includes((body.role || '').toLowerCase())
+      ? (body.role || '').toLowerCase()
+      : 'farmer'
+
+    const userId = `${cleanRole}-${Date.now()}`
     const { hash, salt } = hashPassword(password)
     const initialCoins = 250
 
     await execute(
-      `INSERT INTO users (id, name, phone, email, password_hash, salt, district, state, farm_size_acres, primary_crop, kisan_coins)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+      `INSERT INTO users (id, name, phone, email, password_hash, salt, district, state, farm_size_acres, primary_crop, kisan_coins, role)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
       [
         userId,
         cleanName,
@@ -79,9 +83,36 @@ export async function POST(request: Request) {
         sanitizeText(state || 'Maharashtra'),
         Number(farmSizeAcres) || 2.0,
         sanitizeText(primaryCrop || 'General Crops'),
-        initialCoins
+        initialCoins,
+        cleanRole
       ]
     )
+
+    // If registering as transporter, initialize baseline profile
+    if (cleanRole === 'transporter') {
+      const transporterId = `tr-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
+      await execute(
+        `INSERT INTO transporters (
+          id, user_id, business_name, contact_name, phone, vehicle_type, vehicle_number,
+          carrying_capacity, capacity_unit, service_area, base_location, verification_status,
+          rating, total_completed_jobs, is_active, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, 'MH-12-REG-PENDING',
+          30.00, 'Quintal', $7, $8, 'PENDING',
+          5.00, 0, true, NOW(), NOW()
+        ) ON CONFLICT DO NOTHING`,
+        [
+          transporterId,
+          userId,
+          sanitizeText(body.businessName || `${cleanName} Agri Logistics`),
+          cleanName,
+          phoneValidation.normalized,
+          sanitizeText(body.vehicleType || 'Pickup Truck / Bolero Maxi (2-3T)'),
+          JSON.stringify([state || 'Maharashtra']),
+          sanitizeText(district || 'Pune')
+        ]
+      )
+    }
 
     // Insert welcome notifications
     await execute(
@@ -90,10 +121,12 @@ export async function POST(request: Request) {
       [
         `notif-${Date.now()}-1`,
         userId,
-        'Welcome to FarmOS!',
-        'Your account is activated with 250 Kisan Coins welcome bonus.',
+        `Welcome to FarmDirect as a ${cleanRole.toUpperCase()}!`,
+        cleanRole === 'transporter'
+          ? 'Your transporter account is set up. Add your vehicles and view available delivery jobs.'
+          : 'Your account is activated with 250 Kisan Coins welcome bonus.',
         'coin',
-        '/store'
+        cleanRole === 'transporter' ? '/transporter/dashboard' : '/store'
       ]
     )
 
@@ -105,7 +138,7 @@ export async function POST(request: Request) {
       district: district || 'Pune',
       state: state || 'Maharashtra',
       kisanCoins: initialCoins,
-      role: 'farmer'
+      role: cleanRole
     }
 
     const token = createSessionToken(session)
