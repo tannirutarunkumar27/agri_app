@@ -28,7 +28,7 @@ function createPool(): Pool {
     idleTimeoutMillis: 15000,
     connectionTimeoutMillis: 5000,
     ssl:
-      connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
+      !connectionString || connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
         ? false
         : { rejectUnauthorized: false }
   })

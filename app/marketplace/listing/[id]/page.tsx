@@ -21,7 +21,8 @@ import {
   Store,
   Share2,
   Coins,
-  Send
+  Send,
+  ArrowRight
 } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 
@@ -40,12 +41,15 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
   const [buyerPhone, setBuyerPhone] = useState(user?.phone || '')
   const [buyerType, setBuyerType] = useState('Wholesale Trader / Commission Agent')
   const [buyerLocation, setBuyerLocation] = useState('Local APMC Yard')
+  const [deliveryMethod, setDeliveryMethod] = useState('BUYER_PICKUP')
+  const [expirationHours, setExpirationHours] = useState(48)
   const [offeredPrice, setOfferedPrice] = useState<number>(0)
   const [requestedQty, setRequestedQty] = useState<number>(0)
   const [buyerMessage, setBuyerMessage] = useState('')
   const [inquirySubmitting, setInquirySubmitting] = useState(false)
   const [inquirySuccessMsg, setInquirySuccessMsg] = useState('')
   const [inquiryErrorMsg, setInquiryErrorMsg] = useState('')
+  const [createdOfferId, setCreatedOfferId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchListingDetails()
@@ -77,7 +81,7 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
     setInquirySubmitting(true)
 
     try {
-      const res = await fetch('/api/marketplace/inquiries', {
+      const res = await fetch('/api/marketplace/offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -86,6 +90,8 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
           buyerPhone,
           buyerType,
           buyerLocation,
+          deliveryMethod,
+          expirationHours,
           offeredPricePerUnit: offeredPrice,
           requestedQuantity: requestedQty,
           message: buyerMessage
@@ -94,18 +100,15 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
 
       const data = await res.json()
       if (data.success) {
+        setCreatedOfferId(data.offerId)
         setInquirySuccessMsg(data.message || 'Offer submitted successfully!')
         // Refresh inquiries
         fetchListingDetails()
-        setTimeout(() => {
-          setShowInquiryModal(false)
-          setInquirySuccessMsg('')
-        }, 2500)
       } else {
-        setInquiryErrorMsg(data.error || 'Failed to submit bid')
+        setInquiryErrorMsg(data.error || 'Failed to submit offer')
       }
     } catch (err: any) {
-      setInquiryErrorMsg(err.message || 'Error occurred while submitting')
+      setInquiryErrorMsg(err.message || 'Error occurred while submitting offer')
     } finally {
       setInquirySubmitting(false)
     }
@@ -450,137 +453,205 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
               </div>
             )}
 
-            {inquirySuccessMsg && (
-              <div className="mt-3 rounded-xl bg-emerald-50 p-3 text-xs font-bold text-emerald-800 border border-emerald-200">
-                {inquirySuccessMsg}
-              </div>
-            )}
-
-            <form onSubmit={handleSendInquiry} className="mt-4 space-y-3.5 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Your Name / Firm Name: *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={buyerName}
-                    onChange={(e) => setBuyerName(e.target.value)}
-                    placeholder="E.g. Sri Balaji Agro Traders"
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  />
+            {inquirySuccessMsg ? (
+              <div className="mt-4 space-y-4 text-center py-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+                  <CheckCircle2 className="h-6 w-6" />
                 </div>
-
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Mobile Phone Number: *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={buyerPhone}
-                    onChange={(e) => setBuyerPhone(e.target.value)}
-                    placeholder="10-digit mobile"
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  />
+                  <h4 className="text-base font-black text-slate-900 dark:text-white">Offer Transmitted to Farmer!</h4>
+                  <p className="mt-1 text-xs text-slate-500">
+                    The farmer has been notified with your bid terms. You can monitor their counter-offer or deal acceptance in your Buyer Purchasing Desk.
+                  </p>
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Buyer Category:
-                  </label>
-                  <select
-                    value={buyerType}
-                    onChange={(e) => setBuyerType(e.target.value)}
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <button
+                    onClick={() => {
+                      setShowInquiryModal(false)
+                      setInquirySuccessMsg('')
+                    }}
+                    className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
                   >
-                    <option value="Wholesale Trader / Commission Agent">Wholesale Trader / Dalal</option>
-                    <option value="Dal / Flour Mill Owner">Dal / Flour Mill Owner</option>
-                    <option value="Spice Processing Exporter">Spice Processing Exporter</option>
-                    <option value="Retail Chain / Supermarket">Retail Chain / Supermarket</option>
-                    <option value="FPO / Agri Cooperative">FPO / Agri Cooperative</option>
-                    <option value="Individual Buyer">Individual Buyer</option>
-                  </select>
+                    Close
+                  </button>
+                  <Link
+                    href="/marketplace/orders/buying"
+                    className="rounded-xl bg-emerald-700 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-800 flex items-center gap-1.5"
+                  >
+                    <span>Go to Buyer Purchasing Desk</span>
+                    <ArrowRight className="h-3.5 w-3.5" />
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleSendInquiry} className="mt-4 space-y-3.5 text-xs">
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Your Name / Firm Name: *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={buyerName}
+                      onChange={(e) => setBuyerName(e.target.value)}
+                      placeholder="E.g. Sri Balaji Agro Traders"
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Mobile Phone Number: *
+                    </label>
+                    <input
+                      type="tel"
+                      required
+                      value={buyerPhone}
+                      onChange={(e) => setBuyerPhone(e.target.value)}
+                      placeholder="10-digit mobile"
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Buyer Category:
+                    </label>
+                    <select
+                      value={buyerType}
+                      onChange={(e) => setBuyerType(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    >
+                      <option value="Wholesale Trader / Commission Agent">Wholesale Trader / Dalal</option>
+                      <option value="Dal / Flour Mill Owner">Dal / Flour Mill Owner</option>
+                      <option value="Spice Processing Exporter">Spice Processing Exporter</option>
+                      <option value="Retail Chain / Supermarket">Retail Chain / Supermarket</option>
+                      <option value="FPO / Agri Cooperative">FPO / Agri Cooperative</option>
+                      <option value="Individual Buyer">Individual Buyer</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Your Mandi / Location:
+                    </label>
+                    <input
+                      type="text"
+                      value={buyerLocation}
+                      onChange={(e) => setBuyerLocation(e.target.value)}
+                      placeholder="E.g. Guntur / Latur / Mumbai"
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Offered Price per {listing.unit.split(' ')[0]} (in ₹): *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={offeredPrice}
+                      onChange={(e) => setOfferedPrice(parseInt(e.target.value, 10) || 0)}
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-base font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Quantity Needed ({listing.unit}): *
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      max={listing.quantity}
+                      value={requestedQty}
+                      onChange={(e) => setRequestedQty(parseFloat(e.target.value) || 1)}
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-base font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Logistics Preference:
+                    </label>
+                    <select
+                      value={deliveryMethod}
+                      onChange={(e) => setDeliveryMethod(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    >
+                      <option value="BUYER_PICKUP">Buyer Self-Pickup at Farm-Gate</option>
+                      <option value="FARMER_DELIVERY">Farmer Delivery to Buyer Mandi</option>
+                      <option value="TRANSPORTER">Third-Party Mandi Transporter</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Offer Validity:
+                    </label>
+                    <select
+                      value={expirationHours}
+                      onChange={(e) => setExpirationHours(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                    >
+                      <option value={24}>24 Hours</option>
+                      <option value={48}>48 Hours (Recommended)</option>
+                      <option value={72}>72 Hours (3 Days)</option>
+                      <option value={168}>7 Days</option>
+                    </select>
+                  </div>
                 </div>
 
                 <div>
                   <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Your Location / Mandi:
+                    Special Conditions / Weighment Notes:
                   </label>
-                  <input
-                    type="text"
-                    value={buyerLocation}
-                    onChange={(e) => setBuyerLocation(e.target.value)}
-                    placeholder="E.g. Guntur / Latur / Mumbai"
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-semibold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Offered Price per {listing.unit.split(' ')[0]} (in ₹): *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    value={offeredPrice}
-                    onChange={(e) => setOfferedPrice(parseInt(e.target.value, 10) || 0)}
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-base font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                  <textarea
+                    rows={2}
+                    value={buyerMessage}
+                    onChange={(e) => setBuyerMessage(e.target.value)}
+                    placeholder="E.g. We have truck ready in Pune, payment immediate via escrow after electronic weighbridge check."
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-medium text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                   />
                 </div>
 
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Quantity Needed ({listing.unit}): *
-                  </label>
-                  <input
-                    type="number"
-                    required
-                    min="1"
-                    max={listing.quantity}
-                    value={requestedQty}
-                    onChange={(e) => setRequestedQty(parseFloat(e.target.value) || 1)}
-                    className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 text-base font-bold text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                  />
+                <div className="rounded-2xl bg-emerald-50 p-3 border border-emerald-200 text-xs flex items-center justify-between dark:bg-emerald-950/50 dark:border-emerald-900">
+                  <span className="font-bold text-emerald-900 dark:text-emerald-200">
+                    Total Estimated Offer Value:
+                  </span>
+                  <span className="text-base font-black text-emerald-700 dark:text-emerald-400">
+                    ₹{(offeredPrice * requestedQty).toLocaleString('en-IN')}
+                  </span>
                 </div>
-              </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  Message / Pickup Timeline:
-                </label>
-                <textarea
-                  rows={2}
-                  value={buyerMessage}
-                  onChange={(e) => setBuyerMessage(e.target.value)}
-                  placeholder="E.g. We have truck ready in Pune, payment immediate RTGS after electronic weighbridge check."
-                  className="w-full rounded-xl border border-slate-300 bg-slate-50 p-2.5 font-medium text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
-                />
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowInquiryModal(false)}
-                  className="rounded-xl border border-slate-300 px-4 py-2 font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={inquirySubmitting}
-                  className="rounded-xl bg-emerald-700 px-6 py-2 font-bold text-white shadow-md hover:bg-emerald-800 transition disabled:opacity-50"
-                >
-                  {inquirySubmitting ? 'Sending Offer...' : 'Send Offer to Farmer'}
-                </button>
-              </div>
-            </form>
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowInquiryModal(false)}
+                    className="rounded-xl border border-slate-300 px-4 py-2 font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={inquirySubmitting}
+                    className="rounded-xl bg-emerald-700 px-6 py-2 font-bold text-white shadow-md hover:bg-emerald-800 transition disabled:opacity-50"
+                  >
+                    {inquirySubmitting ? 'Submitting...' : 'Send Formal Offer to Farmer'}
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

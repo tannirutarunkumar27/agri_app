@@ -120,16 +120,23 @@ export default function MarketplacePage() {
               </div>
             </Link>
 
-            <nav className="hidden md:flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <nav className="hidden lg:flex items-center gap-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
               <Link href="/marketplace" className="rounded-lg bg-emerald-100/70 px-3 py-1.5 text-emerald-900 font-bold dark:bg-emerald-950 dark:text-emerald-200">
                 Browse Produce
               </Link>
+              <Link href="/marketplace/orders/selling" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                <span>Farmer Deals</span>
+                <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-black text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">Selling</span>
+              </Link>
+              <Link href="/marketplace/orders/buying" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
+                <span>Buyer Desk</span>
+                <span className="rounded-full bg-blue-100 px-1.5 py-0.2 text-[10px] font-black text-blue-800 dark:bg-blue-950 dark:text-blue-300">Escrow</span>
+              </Link>
               <Link href="/store" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800">
-                Fertile Store (Inputs)
+                Fertile Store
               </Link>
               <Link href="/marketplace/my-listings" className="rounded-lg px-3 py-1.5 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-1">
                 <span>My Listings</span>
-                <span className="rounded-full bg-amber-400 px-1.5 py-0.2 text-[10px] font-black text-amber-950">Farmer</span>
               </Link>
             </nav>
           </div>

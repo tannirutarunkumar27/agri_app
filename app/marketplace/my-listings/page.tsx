@@ -83,13 +83,23 @@ export default function MyListingsPage() {
             <span>Mandi Direct Produce Bazaar</span>
           </Link>
 
-          <Link
-            href="/marketplace/sell"
-            className="flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-800 transition"
-          >
-            <PlusCircle className="h-4 w-4 text-lime-300" />
-            <span>List New Produce</span>
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href="/marketplace/orders/selling"
+              className="flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-900 shadow-xs hover:bg-emerald-100 transition dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-200"
+            >
+              <Package className="h-4 w-4 text-emerald-600" />
+              <span>Selling Orders & Bids</span>
+            </Link>
+
+            <Link
+              href="/marketplace/sell"
+              className="flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-emerald-800 transition"
+            >
+              <PlusCircle className="h-4 w-4 text-lime-300" />
+              <span>List New Produce</span>
+            </Link>
+          </div>
         </div>
       </header>
 
