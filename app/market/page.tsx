@@ -22,7 +22,8 @@ import {
   CheckCircle2,
   ChevronRight,
   Users,
-  AlertTriangle
+  AlertTriangle,
+  ShoppingBag
 } from 'lucide-react'
 
 interface Commodity {
@@ -206,20 +207,33 @@ export default function MarketIntelligenceDashboard() {
           </div>
 
           {/* Quick Nav Links */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <Link
-              href="/market/advisor"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 text-xs font-bold shadow-sm transition"
+              href="/farmer/buyer-requests"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 text-xs font-bold shadow-xs transition"
             >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Sell vs Hold Advisor</span>
+              <Users className="h-3.5 w-3.5" />
+              <span>Buyer Requests & Matches</span>
             </Link>
             <Link
-              href="/marketplace/sell"
-              className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-600 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 px-3.5 py-2 text-xs font-bold transition"
+              href="/market/liquidity"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-3 py-2 text-xs font-bold transition"
             >
-              <DollarSign className="h-3.5 w-3.5" />
-              <span>List Crop for Sale</span>
+              <span>Market Liquidity</span>
+            </Link>
+            <Link
+              href="/market/advisor"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white dark:bg-emerald-950 dark:text-emerald-300 px-3 py-2 text-xs font-bold transition"
+            >
+              <Sparkles className="h-3.5 w-3.5" />
+              <span>Sell vs Hold</span>
+            </Link>
+            <Link
+              href="/buyer/demand/create"
+              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-600 text-blue-700 dark:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-950/40 px-3 py-2 text-xs font-bold transition"
+            >
+              <ShoppingBag className="h-3.5 w-3.5" />
+              <span>Buyer Post Demand</span>
             </Link>
           </div>
         </div>

@@ -70,6 +70,30 @@ export async function POST(request: Request) {
     const farmerId = listing.seller_id
     const offerId = `off-${Date.now().toString(36)}-${Math.floor(Math.random() * 1000)}`
     const totalValue = offeredPricePerUnit * requestedQuantity
+    const demandRequestId = body.demandRequestId ? sanitizeText(body.demandRequestId) : null
+
+    // If offer is linked to a buyer demand request, enforce expiration and status
+    if (demandRequestId) {
+      const demandCheck = await queryOne<any>(
+        'SELECT id, buyer_id, status, expires_at FROM buyer_demand_requests WHERE id = $1',
+        [demandRequestId]
+      )
+      if (!demandCheck) {
+        return NextResponse.json({ success: false, error: 'Linked buyer demand request not found.' }, { status: 404 })
+      }
+      if (demandCheck.status === 'EXPIRED' || new Date(demandCheck.expires_at) < new Date()) {
+        return NextResponse.json(
+          { success: false, error: 'This buyer demand request has expired. New offers cannot be submitted against expired demands.' },
+          { status: 400 }
+        )
+      }
+      if (demandCheck.status === 'CANCELLED') {
+        return NextResponse.json(
+          { success: false, error: 'This buyer demand request has been cancelled.' },
+          { status: 400 }
+        )
+      }
+    }
 
     // Execute atomic creation
     await runTransaction(async (tx) => {
@@ -78,11 +102,11 @@ export async function POST(request: Request) {
         `INSERT INTO market_inquiries (
           id, listing_id, buyer_id, farmer_id, buyer_name, buyer_phone, buyer_type, buyer_location,
           offered_price_per_unit, requested_quantity, total_value, delivery_method, message, status,
-          expires_at, created_at, updated_at
+          demand_request_id, expires_at, created_at, updated_at
         ) VALUES (
           $1, $2, $3, $4, $5, $6, $7, $8,
           $9, $10, $11, $12, $13, 'PENDING',
-          NOW() + ($14 || ' hours')::interval, NOW(), NOW()
+          $14, NOW() + ($15 || ' hours')::interval, NOW(), NOW()
         )`,
         [
           offerId,
@@ -98,6 +122,7 @@ export async function POST(request: Request) {
           totalValue,
           deliveryMethod,
           message,
+          demandRequestId,
           `${expirationHours}`
         ]
       )
@@ -122,7 +147,16 @@ export async function POST(request: Request) {
       // 3. Increment inquiries_count on listing
       await tx.execute('UPDATE market_listings SET inquiries_count = inquiries_count + 1 WHERE id = $1', [listingId])
 
-      // 4. Send notification to farmer
+      // 4. Record in match_history if demand linked
+      if (demandRequestId) {
+        await tx.execute(
+          `INSERT INTO match_history (farmer_id, buyer_id, demand_request_id, listing_id, score, outcome, notes)
+           VALUES ($1, $2, $3, $4, 90.00, 'OFFER_SUBMITTED', 'Farmer submitted direct offer from demand discovery')`,
+          [farmerId, buyerId, demandRequestId, listingId]
+        )
+      }
+
+      // 5. Send notification to farmer
       await tx.execute(
         `INSERT INTO notifications (id, user_id, title, message, type, link)
          VALUES ($1, $2, $3, $4, 'order', $5)`,

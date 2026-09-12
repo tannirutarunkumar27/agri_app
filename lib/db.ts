@@ -57,7 +57,7 @@ function createPool(): Pool {
     // Keep per-container pool small (2-3) to prevent connection pool exhaustion across serverless lambdas
     max: process.env.NODE_ENV === 'production' ? 3 : 5,
     idleTimeoutMillis: 15000,
-    connectionTimeoutMillis: 5000,
+    connectionTimeoutMillis: 20000,
     ssl:
       !connectionString || connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
         ? false
@@ -83,6 +83,11 @@ export function getPool(): Pool {
     global.__farmos_pg_pool__ = createPool()
   }
   return global.__farmos_pg_pool__
+}
+
+export const pool = {
+  query: <T extends QueryResultRow = any>(sql: string, params: any[] = []) => query<T>(sql, params),
+  connect: () => getPool().connect()
 }
 
 /**
