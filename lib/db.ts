@@ -20,12 +20,13 @@ function createPool(): Pool {
     )
   }
 
-  // Supabase PostgreSQL connection pooler configuration
+  // Supabase PostgreSQL connection pooler configuration optimized for serverless execution
   const pool = new Pool({
     connectionString: connectionString || undefined,
-    max: process.env.NODE_ENV === 'production' ? 20 : 10,
-    idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 10000,
+    // Keep per-container pool small (2-3) to prevent connection pool exhaustion across serverless lambdas
+    max: process.env.NODE_ENV === 'production' ? 3 : 5,
+    idleTimeoutMillis: 15000,
+    connectionTimeoutMillis: 5000,
     ssl:
       connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
         ? false
