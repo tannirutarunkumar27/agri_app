@@ -61,7 +61,7 @@ export async function GET(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error fetching delivery bids:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch bids' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -180,6 +180,6 @@ export async function POST(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error submitting delivery bid:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to submit quote' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

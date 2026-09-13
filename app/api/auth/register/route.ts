@@ -168,6 +168,6 @@ export async function POST(request: Request) {
     return response
   } catch (error: any) {
     console.error('Registration error:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Registration failed' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

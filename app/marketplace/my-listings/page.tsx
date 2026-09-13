@@ -33,8 +33,11 @@ export default function MyListingsPage() {
   const fetchMyListings = async () => {
     setLoading(true)
     try {
-      // If user logged in, use their id; otherwise use demo farmer
-      const sellerId = user?.userId || user?.id || 'farmer-demo'
+      if (!user) {
+        setListings([])
+        return
+      }
+      const sellerId = user.userId || user.id
       const res = await fetch(`/api/marketplace/listings?seller_id=${sellerId}&status=all`)
       const data = await res.json()
       if (data.success) {
@@ -112,46 +115,53 @@ export default function MyListingsPage() {
               My Produce Listings & Bids
             </h1>
             <p className="text-xs text-slate-500 mt-1">
-              Farmer: <strong className="text-emerald-800 dark:text-emerald-300">{user?.name || 'Ramesh Patil'}</strong> (Baramati Rural / Latur)
+              Farmer: <strong className="text-emerald-800 dark:text-emerald-300">{user ? user.name : 'Guest'}</strong>
+              {user?.district ? ` (${user.district})` : ''}
             </p>
           </div>
 
           <Link
             href="/marketplace/sell"
-            className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-green-700 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:from-emerald-700 hover:to-green-800"
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-800 transition"
           >
             <PlusCircle className="h-4 w-4 text-lime-300" />
-            <span>Post Produce for Sale</span>
+            <span>Create New Lot</span>
           </Link>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-[11px] font-medium text-slate-400">Total Produce Lots</span>
-            <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{listings.length}</p>
+        {/* Overview Stat Badges */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <span className="text-[11px] font-semibold text-slate-500">Active Listings</span>
+            <p className="text-xl sm:text-2xl font-black text-emerald-800 dark:text-emerald-400 mt-1">
+              {listings.filter((l) => l.status === 'ACTIVE').length}
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-[11px] font-medium text-slate-400">Buyer Inquiries & Bids</span>
-            <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1">{totalBids}</p>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <span className="text-[11px] font-semibold text-slate-500">Total Buyer Bids</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {totalBids}
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-[11px] font-medium text-slate-400">Total Buyer Views</span>
-            <p className="text-2xl font-black text-slate-900 dark:text-white mt-1">{totalViews}</p>
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <span className="text-[11px] font-semibold text-slate-500">Total Views</span>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
+              {totalViews}
+            </p>
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-            <span className="text-[11px] font-medium text-slate-400">Estimated Total Lot Value</span>
-            <p className="text-xl font-black text-emerald-800 dark:text-emerald-300 mt-1 truncate">
+          <div className="rounded-2xl border border-emerald-100 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+            <span className="text-[11px] font-semibold text-slate-500">Listed Value</span>
+            <p className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1">
               ₹{totalLotValue.toLocaleString('en-IN')}
             </p>
           </div>
         </div>
 
-        {/* Status Filter Tabs */}
-        <div className="flex items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        {/* Tab Filters */}
+        <div className="flex gap-2 border-b border-emerald-100 pb-3 dark:border-slate-800">
           <button
             onClick={() => setActiveTab('all')}
             className={`rounded-xl px-4 py-2 text-xs font-bold transition ${
@@ -185,7 +195,23 @@ export default function MyListingsPage() {
         </div>
 
         {/* Listings List */}
-        {loading ? (
+        {!user && !loading ? (
+          <div className="rounded-3xl border border-dashed border-emerald-300 bg-emerald-50/50 p-12 text-center dark:border-slate-800 dark:bg-slate-900/50">
+            <AlertCircle className="mx-auto h-8 w-8 text-emerald-600 mb-2" />
+            <p className="text-base font-bold text-slate-800 dark:text-slate-200">
+              Please log in to manage your produce listings
+            </p>
+            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+              Sign in with your farmer account to track active lots, review buyer offers, and close contracts.
+            </p>
+            <Link
+              href="/login?redirect=/marketplace/my-listings"
+              className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-700 px-6 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-800 transition"
+            >
+              <span>Log In to FarmDirect</span>
+            </Link>
+          </div>
+        ) : loading ? (
           <div className="h-64 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
         ) : filteredListings.length === 0 ? (
           <div className="rounded-3xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-800">

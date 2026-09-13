@@ -151,7 +151,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, count: jobs.length, jobs })
   } catch (error: any) {
     console.error('Error fetching delivery jobs:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch delivery jobs' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -286,6 +286,6 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error creating delivery job:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to create delivery job' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

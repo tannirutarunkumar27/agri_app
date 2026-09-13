@@ -1,8 +1,18 @@
 import crypto from 'node:crypto'
 import { cookies } from 'next/headers'
 
-const AUTH_SECRET = process.env.AUTH_SECRET || 'farmos-super-secret-production-salt-key-2026'
 export const AUTH_COOKIE_NAME = 'farmos_session'
+
+export function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET || process.env.JWT_SECRET
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: Neither AUTH_SECRET nor JWT_SECRET environment variable is configured in production.')
+    }
+    return 'farmdirect-dev-only-local-secret-key-2026'
+  }
+  return secret
+}
 
 export interface UserSession {
   userId: string
@@ -46,7 +56,7 @@ export function verifyPassword(password: string, hash: string, salt: string): bo
  */
 export function createSessionToken(session: UserSession): string {
   const payload = Buffer.from(JSON.stringify(session)).toString('base64url')
-  const signature = crypto.createHmac('sha256', AUTH_SECRET).update(payload).digest('base64url')
+  const signature = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url')
   return `${payload}.${signature}`
 }
 
@@ -58,7 +68,7 @@ export function verifySessionToken(token: string): UserSession | null {
     const parts = token.split('.')
     if (parts.length !== 2) return null
     const [payload, signature] = parts
-    const expectedSignature = crypto.createHmac('sha256', AUTH_SECRET).update(payload).digest('base64url')
+    const expectedSignature = crypto.createHmac('sha256', getAuthSecret()).update(payload).digest('base64url')
     
     // Constant time comparison
     if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature))) {

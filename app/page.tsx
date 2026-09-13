@@ -87,9 +87,9 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-emerald-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
       {/* Top Advisory Strip */}
       <div className="bg-emerald-900 px-4 py-1.5 text-center text-xs font-semibold text-emerald-100 dark:bg-emerald-950 flex items-center justify-center gap-3">
-        <span>🌾 <strong>FarmOS 2.0:</strong> India’s 1st End-to-End Agri Intelligence & Collateral Finance Platform</span>
+        <span>🌾 <strong>FarmDirect:</strong> India’s 1st End-to-End Direct Farmer-to-Market & Intelligence Platform</span>
         <span className="hidden md:inline">•</span>
-        <span className="hidden md:inline text-lime-300">📞 Farmer Kisan Helpline: 1800-FARM-OS (Toll-Free 24/7)</span>
+        <span className="hidden md:inline text-lime-300">📞 Farmer Kisan Helpline: 1800-FARM-DIRECT (Toll-Free 24/7)</span>
       </div>
 
       {/* Header */}
@@ -102,13 +102,13 @@ export default function Home() {
               </div>
               <div>
                 <h1 className="text-xl sm:text-2xl font-black text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
-                  FarmOS
+                  FarmDirect
                   <span className="rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-black text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
                     SMART AGRI
                   </span>
                 </h1>
                 <p className="text-xs text-emerald-600 dark:text-emerald-400 hidden sm:block">
-                  AI Voice Advisor · Sell/Hold Predictor · FCO Certified Fertile Store
+                  Direct Mandi Bazaar · AI Market Advisor · Sell/Hold Predictor · Certified Inputs
                 </p>
               </div>
             </div>
@@ -255,23 +255,23 @@ export default function Home() {
       <footer className="border-t border-emerald-200 bg-white dark:border-slate-800 dark:bg-slate-900 text-slate-700 dark:text-slate-300">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-            {/* Col 1: About FarmOS & Toll-Free */}
+            {/* Col 1: About FarmDirect & Toll-Free */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white font-bold">
                   <Leaf className="h-5 w-5" />
                 </div>
-                <span className="text-xl font-black text-slate-900 dark:text-white">FarmOS</span>
+                <span className="text-xl font-black text-slate-900 dark:text-white">FarmDirect</span>
               </div>
               <p className="text-xs leading-relaxed text-slate-500 dark:text-slate-400">
-                Transforming Indian agriculture with trustworthy AI intelligence, mandi forecasting, and digital warehouse receipts so smallholders never suffer distress selling.
+                Transforming Indian agriculture with trustworthy direct trade, AI intelligence, mandi forecasting, and digital traceability so smallholders never suffer distress selling.
               </p>
               <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3 text-xs dark:border-emerald-900 dark:bg-emerald-950/30">
                 <p className="font-bold text-emerald-900 dark:text-emerald-200 flex items-center gap-1.5">
                   <PhoneCall className="h-4 w-4 text-emerald-600" /> Kisan Toll-Free Advisory
                 </p>
                 <p className="text-sm font-extrabold text-emerald-700 dark:text-emerald-300 mt-1">
-                  1800-FARM-OS (1800-3276-67)
+                  1800-FARM-DIRECT (Toll-Free 24/7)
                 </p>
                 <p className="text-[11px] text-emerald-800/80 dark:text-emerald-400">
                   Available 24/7 in 7 Indian Languages
@@ -386,7 +386,7 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-slate-200 pt-6 text-xs text-slate-500 dark:border-slate-800">
-            <p>© 2026 FarmOS Platform · Built for Indian Farmers & Krishi Kendras with ACID Data Integrity</p>
+            <p>© 2026 FarmDirect Platform · Built for Indian Farmers & Procurement Networks with ACID Data Integrity</p>
             <div className="flex items-center gap-4">
               <Link href="/store" className="hover:text-emerald-600 transition">Fertile Store</Link>
               <Link href="/store/orders" className="hover:text-emerald-600 transition">Order Tracking</Link>
@@ -405,7 +405,7 @@ function Dashboard({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-green-50 p-8 dark:border-slate-800 dark:from-slate-800 dark:to-slate-700">
-        <h2 className="text-3xl font-extrabold text-emerald-900 dark:text-emerald-100">Welcome to FarmOS</h2>
+        <h2 className="text-3xl font-extrabold text-emerald-900 dark:text-emerald-100">Welcome to FarmDirect</h2>
         <p className="mt-2 text-sm text-emerald-700 dark:text-emerald-300">
           Your intelligent farming companion — delivering trustworthy intelligence, price forecasting, collateral
           financing, and direct produce selling so you never suffer distress selling.
@@ -485,7 +485,7 @@ function Dashboard({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
             </span>
             <h3 className="mt-2 text-2xl font-black md:text-3xl">One dilemma solved: sell now, or hold?</h3>
             <p className="mt-1 max-w-2xl text-xs text-emerald-200">
-              Smallholders lose 22-38% of season value due to panic harvest sales. FarmOS replaces hearsay with verifiable
+              Smallholders lose 22-38% of season value due to panic harvest sales. FarmDirect replaces hearsay with verifiable
               district data and instant collateral-backed credit.
             </p>
           </div>
@@ -580,7 +580,7 @@ function Dashboard({ setActiveTab }: { setActiveTab: (tab: string) => void }) {
               PITCH DECK DIFFERENTIATORS · GTM & Dealer Moat
             </span>
             <h3 className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">
-              Why FarmOS wins where pure advisory failed
+              Why FarmDirect wins where pure advisory failed
             </h3>
             <p className="mt-1 max-w-2xl text-xs text-slate-500 dark:text-slate-400">
               Advisory alone doesn&apos;t create habit. We monetize credit and supply while locking distribution through local

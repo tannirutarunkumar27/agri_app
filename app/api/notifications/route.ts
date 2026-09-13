@@ -5,8 +5,10 @@ import { getSessionFromCookies } from '@/lib/auth'
 export async function GET(request: Request) {
   try {
     const session = await getSessionFromCookies()
-    const { searchParams } = new URL(request.url)
-    const userId = session?.userId || searchParams.get('userId') || 'farmer-demo'
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view notifications.' }, { status: 401 })
+    }
+    const userId = session.userId
 
     const rows = await query<any>(
       'SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC LIMIT 30',
@@ -26,16 +28,19 @@ export async function GET(request: Request) {
       notifications
     })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Notifications GET error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to retrieve notifications' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
     const session = await getSessionFromCookies()
-    const { searchParams } = new URL(request.url)
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to update notifications.' }, { status: 401 })
+    }
+    const userId = session.userId
     const body = await request.json()
-    const userId = session?.userId || searchParams.get('userId') || 'farmer-demo'
     const { notificationId, markAll = false } = body
 
     if (markAll) {
@@ -53,6 +58,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: false, error: 'Invalid request' }, { status: 400 })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Notifications POST error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update notifications' }, { status: 500 })
   }
 }

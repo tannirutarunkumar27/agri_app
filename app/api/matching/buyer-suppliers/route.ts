@@ -147,87 +147,6 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Fallback realistic demo farmers if candidate listings are few
-    if (matchedSuppliers.length === 0) {
-      const demoFarmers = [
-        {
-          listing_id: 'list-demo-001',
-          farmer_id: 'usr-farmer-ramesh',
-          farmer_name: 'Ramesh Patil',
-          farmer_phone: '+91 98220 12345',
-          crop_name: demand.commodityName,
-          variety: 'Maruti (ICP 8863)',
-          quality_grade: 'Grade A (FAQ Bold)',
-          available_quantity: 50,
-          unit: demand.quantityUnit,
-          asking_price: demand.targetPricePerUnit,
-          harvest_date: new Date().toISOString().split('T')[0],
-          location: 'Warangal Rural, Telangana',
-          distance_km: 35,
-          match_score: 94,
-          positive_explanations: [
-            `✓ Exact commodity match (${demand.commodityName})`,
-            `✓ Available volume (${demand.quantityUnit}) fully meets demand`,
-            `✓ Asking price is within target range`,
-            `✓ Located within 35 km procurement radius`
-          ],
-          caution_explanations: [],
-          reliability_rating: 4.9
-        },
-        {
-          listing_id: 'list-demo-002',
-          farmer_id: 'usr-farmer-suresh',
-          farmer_name: 'Suresh Reddy',
-          farmer_phone: '+91 98220 54321',
-          crop_name: demand.commodityName,
-          variety: 'Asha (ICPL 87119)',
-          quality_grade: 'Grade A',
-          available_quantity: 30,
-          unit: demand.quantityUnit,
-          asking_price: Math.round(demand.targetPricePerUnit * 1.01),
-          harvest_date: new Date().toISOString().split('T')[0],
-          location: 'Khammam Agricultural Belt, Telangana',
-          distance_km: 78,
-          match_score: 88,
-          positive_explanations: [
-            `✓ Exact commodity match`,
-            `✓ Meets minimum order threshold`,
-            `✓ Verified farmer profile`
-          ],
-          caution_explanations: [
-            `⚠ Asking price is slightly higher than target price`
-          ],
-          reliability_rating: 4.8
-        },
-        {
-          listing_id: 'list-demo-003',
-          farmer_id: 'usr-farmer-anil',
-          farmer_name: 'Anil Kumar Gowda',
-          farmer_phone: '+91 98220 99887',
-          crop_name: demand.commodityName,
-          variety: 'Standard Local Variety',
-          quality_grade: 'Grade B (Milling Standard)',
-          available_quantity: 80,
-          unit: demand.quantityUnit,
-          asking_price: Math.round(demand.targetPricePerUnit * 1.02),
-          harvest_date: new Date().toISOString().split('T')[0],
-          location: 'Gulbarga Mandi Outskirts, Karnataka',
-          distance_km: 115,
-          match_score: 81,
-          positive_explanations: [
-            `✓ High volume available for bulk purchase`,
-            `✓ Instant harvest dispatch ready`
-          ],
-          caution_explanations: [
-            `⚠ Grade B offered while buyer requested Grade A / FAQ`,
-            `⚠ Distance (115 km) slightly exceeds preferred radius`
-          ],
-          reliability_rating: 4.7
-        }
-      ]
-      matchedSuppliers.push(...demoFarmers)
-    }
-
     // Apply Sorting
     if (sortBy === 'price') {
       matchedSuppliers.sort((a, b) => a.asking_price - b.asking_price)
@@ -238,7 +157,7 @@ export async function GET(request: NextRequest) {
     } else if (sortBy === 'reliability') {
       matchedSuppliers.sort((a, b) => b.reliability_rating - a.reliability_rating)
     } else {
-      // Default: match score
+      // Default: sort by match_score desc
       matchedSuppliers.sort((a, b) => b.match_score - a.match_score)
     }
 
@@ -267,7 +186,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/matching/buyer-suppliers error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to match buyer suppliers' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

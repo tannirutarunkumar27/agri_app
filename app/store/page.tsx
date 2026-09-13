@@ -242,7 +242,7 @@ export default function StorePage() {
               className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-slate-800"
             >
               <ArrowLeft className="h-4 w-4" />
-              <span>Back to FarmOS</span>
+              <span>Back to FarmDirect</span>
             </Link>
             <div className="hidden h-5 w-px bg-slate-200 sm:block dark:bg-slate-700" />
             <div className="flex items-center gap-2">
@@ -250,7 +250,7 @@ export default function StorePage() {
                 <Sprout className="h-5 w-5" />
               </div>
               <span className="hidden font-bold text-slate-900 sm:inline dark:text-white">
-                Fertile Store <span className="text-xs text-emerald-600 font-medium">by FarmOS</span>
+                Fertile Store <span className="text-xs text-emerald-600 font-medium">by FarmDirect</span>
               </span>
             </div>
           </div>

@@ -28,7 +28,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, records, stats })
   } catch (error: any) {
     console.error('[API /api/admin/verification GET] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process verification request' }, { status: 500 })
   }
 }
 
@@ -60,6 +60,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, record: updated })
   } catch (error: any) {
     console.error('[API /api/admin/verification POST] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process verification request' }, { status: 500 })
   }
 }

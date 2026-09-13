@@ -107,6 +107,6 @@ export async function POST(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error uploading proof of delivery:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to upload proof' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

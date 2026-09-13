@@ -140,7 +140,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/market/nearby error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to compare nearby markets' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

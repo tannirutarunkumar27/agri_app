@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/admin/market/sync error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Mandi sync failed' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

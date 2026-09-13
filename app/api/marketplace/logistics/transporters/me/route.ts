@@ -84,7 +84,7 @@ export async function GET() {
     })
   } catch (error: any) {
     console.error('Error fetching transporter profile:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch profile' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -140,6 +140,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: true, message: 'Transporter profile updated successfully.' })
   } catch (error: any) {
     console.error('Error updating transporter profile:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to update profile' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

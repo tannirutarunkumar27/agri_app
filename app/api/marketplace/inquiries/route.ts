@@ -1,16 +1,18 @@
 import { NextResponse } from 'next/server'
-import { query, runTransaction } from '@/lib/db'
+import { query, queryOne, runTransaction } from '@/lib/db'
 import { sanitizeText, normalizeAndValidatePhone } from '@/lib/validation'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromCookies()
     const body = await request.json()
 
     const listingId = sanitizeText(body.listingId)
-    const buyerName = sanitizeText(body.buyerName)
-    const buyerPhone = sanitizeText(body.buyerPhone)
-    const buyerType = sanitizeText(body.buyerType || 'Wholesale Trader')
-    const buyerLocation = sanitizeText(body.buyerLocation || 'Local Mandi')
+    const buyerName = sanitizeText(body.buyerName || session?.name || '')
+    const buyerPhone = sanitizeText(body.buyerPhone || session?.phone || '')
+    const buyerType = sanitizeText(body.buyerType || (session?.role === 'buyer' ? 'Commercial Buyer' : 'Wholesale Trader'))
+    const buyerLocation = sanitizeText(body.buyerLocation || session?.district || 'Local Mandi')
     const offeredPricePerUnit = parseInt(body.offeredPricePerUnit, 10)
     const requestedQuantity = parseFloat(body.requestedQuantity)
     const message = sanitizeText(body.message || '')
@@ -90,22 +92,36 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Your buying offer has been dispatched directly to the farmer via FarmOS SMS & Portal!',
+      message: 'Your buying offer has been dispatched directly to the farmer via FarmDirect SMS & Portal!',
       inquiryId
     })
   } catch (error: any) {
     console.error('Error submitting market inquiry:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to submit inquiry' }, { status: 500 })
   }
 }
 
 export async function GET(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view inquiries.' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const listingId = searchParams.get('listing_id')
 
     if (!listingId) {
       return NextResponse.json({ success: false, error: 'listing_id is required' }, { status: 400 })
+    }
+
+    const listing = await queryOne<any>('SELECT seller_id FROM market_listings WHERE id = $1', [listingId])
+    if (!listing) {
+      return NextResponse.json({ success: false, error: 'Listing not found' }, { status: 404 })
+    }
+
+    if (session.role !== 'admin' && session.userId !== listing.seller_id) {
+      return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to view inquiries for this listing.' }, { status: 403 })
     }
 
     const inquiries = await query(
@@ -117,6 +133,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, inquiries })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error fetching market inquiries:', error)
+    return NextResponse.json({ success: false, error: 'Failed to fetch inquiries' }, { status: 500 })
   }
 }

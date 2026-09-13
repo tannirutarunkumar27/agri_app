@@ -6,8 +6,8 @@ import { AuthProvider } from '@/lib/auth-context'
 import { ToastProvider } from '@/components/ui/toast'
 
 export const metadata: Metadata = {
-  title: 'FarmOS — Smart Farming & Agri-Commerce Assistant',
-  description: 'Certified bio-fertilizers, real-time mandi prices, sell/hold AI predictor, warehouse financing, and crop health guidance for Indian farmers.',
+  title: 'FarmDirect — Direct Farmer-to-Market & Smart Operations Platform',
+  description: 'Direct farmer-to-buyer trade, certified bio-fertilizers, real-time mandi prices, sell/hold AI predictor, logistics, and crop health guidance.',
   generator: 'v0.app',
   icons: {
     icon: [

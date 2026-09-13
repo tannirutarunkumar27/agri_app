@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/market/forecast error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to generate price forecast' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

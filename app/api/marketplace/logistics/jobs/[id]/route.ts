@@ -175,7 +175,7 @@ export async function GET(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error fetching job details:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch job details' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -417,6 +417,6 @@ export async function PATCH(request: Request, props: Params) {
     return NextResponse.json({ success: false, error: 'Unhandled action.' }, { status: 400 })
   } catch (error: any) {
     console.error('Error updating delivery job:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to update delivery job' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

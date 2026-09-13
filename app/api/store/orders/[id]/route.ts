@@ -1,16 +1,30 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view order details.' }, { status: 401 })
+    }
+
     const { id } = await params
 
     const order = await queryOne<any>('SELECT * FROM orders WHERE id = $1', [id])
     if (!order) {
       return NextResponse.json({ success: false, error: 'Order not found' }, { status: 404 })
+    }
+
+    // Ownership check: user_phone matches session user phone, or user is admin
+    const userPhone = (session.phone || '').replace(/\D/g, '').slice(-10)
+    const orderPhone = (order.user_phone || '').replace(/\D/g, '').slice(-10)
+
+    if (session.role !== 'admin' && (!userPhone || !orderPhone || userPhone !== orderPhone)) {
+      return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to view this order.' }, { status: 403 })
     }
 
     const items = await query<any>('SELECT * FROM order_items WHERE order_id = $1', [id])
@@ -48,6 +62,7 @@ export async function GET(
       }
     })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error fetching store order detail:', error)
+    return NextResponse.json({ success: false, error: 'Failed to retrieve order details' }, { status: 500 })
   }
 }

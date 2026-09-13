@@ -11,7 +11,7 @@ export async function GET(
     return NextResponse.json({ success: true, profile })
   } catch (error: any) {
     console.error('[API /api/trust/profile/[userId] GET] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process trust profile request' }, { status: 500 })
   }
 }
 
@@ -26,6 +26,6 @@ export async function POST(
     return NextResponse.json({ success: true, breakdown, profile })
   } catch (error: any) {
     console.error('[API /api/trust/profile/[userId] POST] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process trust profile request' }, { status: 500 })
   }
 }

@@ -146,7 +146,7 @@ export async function GET(request: Request) {
     })
   } catch (error: any) {
     console.error('Error fetching marketplace listings:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch marketplace listings' }, { status: 500 })
   }
 }
 
@@ -226,11 +226,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Produce listed successfully on FarmOS Mandi!',
+      message: 'Produce listed successfully on FarmDirect Mandi!',
       listingId: id
     })
   } catch (error: any) {
     console.error('Error creating market listing:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to create produce listing' }, { status: 500 })
   }
 }

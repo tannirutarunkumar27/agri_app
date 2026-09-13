@@ -31,6 +31,6 @@ export async function GET(
     })
   } catch (error: any) {
     console.error('[API /api/trust/trace/[lotId] GET] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch digital traceability record' }, { status: 500 })
   }
 }

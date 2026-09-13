@@ -143,7 +143,7 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
     <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-white pb-16">
       {/* Top Advisory Strip */}
       <div className="bg-emerald-900 px-4 py-1.5 text-center text-xs font-semibold text-emerald-100 dark:bg-emerald-950 flex items-center justify-center gap-3">
-        <span>🌾 <strong>FarmOS Mandi Direct:</strong> Verified Farmer Produce Listing · Zero Middleman Markup</span>
+        <span>🌾 <strong>FarmDirect Mandi Bazaar:</strong> Verified Farmer Produce Listing · Zero Middleman Markup</span>
       </div>
 
       {/* Nav */}
@@ -227,7 +227,7 @@ export default function ProduceDetailPage({ params }: { params: Promise<{ id: st
                   <span>Call Farmer</span>
                 </a>
                 <a
-                  href={`https://wa.me/${listing.sellerPhone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(listing.sellerName)},%20I%20saw%20your%20listing%20for%20${encodeURIComponent(listing.cropName)}%20on%20FarmOS.%20I%20am%20interested%20in%20buying.`}
+                  href={`https://wa.me/${listing.sellerPhone.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(listing.sellerName)},%20I%20saw%20your%20listing%20for%20${encodeURIComponent(listing.cropName)}%20on%20FarmDirect.%20I%20am%20interested%20in%20buying.`}
                   target="_blank"
                   rel="noreferrer"
                   className="flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-700 transition"

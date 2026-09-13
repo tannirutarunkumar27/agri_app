@@ -101,9 +101,9 @@ export default function MarketplacePage() {
     <div className="min-h-screen bg-gradient-to-br from-emerald-50/50 via-white to-amber-50/30 text-slate-900 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 dark:text-white">
       {/* Top Advisory Strip */}
       <div className="bg-emerald-900 px-4 py-1.5 text-center text-xs font-semibold text-emerald-100 dark:bg-emerald-950 flex items-center justify-center gap-3">
-        <span>🌾 <strong>FarmOS Mandi Direct:</strong> Sell Your Harvest Directly to Mills, Traders & Retailers at 0% Commission</span>
+        <span>🌾 <strong>FarmDirect Mandi Bazaar:</strong> Sell Your Harvest Directly to Mills, Traders & Retailers at 0% Commission</span>
         <span className="hidden md:inline">•</span>
-        <span className="hidden md:inline text-lime-300">📞 Farmer Helpdesk: 1800-FARM-OS (Toll Free)</span>
+        <span className="hidden md:inline text-lime-300">📞 Farmer Helpdesk: 1800-FARM-DIRECT (Toll Free)</span>
       </div>
 
       {/* Main Navigation Header */}
@@ -115,7 +115,7 @@ export default function MarketplacePage() {
                 <Leaf className="h-5 w-5" />
               </div>
               <div>
-                <span className="text-base font-black tracking-tight text-emerald-900 dark:text-white">FarmOS</span>
+                <span className="text-base font-black tracking-tight text-emerald-900 dark:text-white">FarmDirect</span>
                 <span className="ml-1 text-xs font-bold text-amber-600 dark:text-amber-400">Mandi</span>
               </div>
             </Link>

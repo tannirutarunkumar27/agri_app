@@ -178,7 +178,7 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error creating marketplace offer:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to submit offer.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -299,6 +299,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, count: offers.length, offers })
   } catch (error: any) {
     console.error('Error fetching marketplace offers:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch offers.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -92,11 +92,18 @@ export default function SellProduceWizard() {
     setSubmitting(true)
 
     try {
+      if (!user) {
+        setErrorMsg('Please log in with your farmer account to publish a produce listing.')
+        setSubmitting(false)
+        router.push('/login?redirect=/marketplace/sell')
+        return
+      }
+
       const cropName = currentCrop ? currentCrop.name : (customCropName || 'Farm Produce')
       const payload = {
-        sellerId: user?.userId || user?.id || 'farmer-demo',
-        sellerName: user?.name || 'Ramesh Patil',
-        sellerPhone: user?.phone || '+91 98220 12345',
+        sellerId: user.userId || user.id,
+        sellerName: user.name,
+        sellerPhone: user.phone,
         sellerVillage: village,
         sellerDistrict: district,
         sellerState: state,
@@ -898,7 +905,7 @@ export default function SellProduceWizard() {
                   Confirm Your Produce Listing Details
                 </h2>
                 <p className="mt-1 text-xs text-slate-500">
-                  Review everything before publishing live on FarmOS Mandi Direct.
+                  Review everything before publishing live on FarmDirect Mandi Bazaar.
                 </p>
               </div>
 

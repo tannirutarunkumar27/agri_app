@@ -119,7 +119,7 @@ export async function GET(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error getting marketplace offer detail:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to get offer.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -539,6 +539,6 @@ export async function PATCH(request: Request, props: Params) {
     return NextResponse.json({ success: false, error: 'Unhandled action.' }, { status: 400 })
   } catch (error: any) {
     console.error('Error handling marketplace offer action:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to process offer action.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

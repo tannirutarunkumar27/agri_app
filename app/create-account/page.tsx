@@ -56,7 +56,7 @@ export default function CreateAccountPage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-900/40">
                 <Leaf className="h-6 w-6" />
               </span>
-              <span className="text-2xl font-bold">FarmOS</span>
+              <span className="text-2xl font-bold">FarmDirect</span>
             </Link>
             <div className="max-w-sm">
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-800/80 px-3 py-1 text-xs font-semibold text-amber-300 border border-amber-400/30">
@@ -74,12 +74,12 @@ export default function CreateAccountPage() {
           <section className="p-6 sm:p-10">
             <div className="mb-6 md:hidden">
               <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                <Leaf className="h-6 w-6 text-emerald-600" /> FarmOS
+                <Leaf className="h-6 w-6 text-emerald-600" /> FarmDirect
               </Link>
             </div>
 
             <div className="max-w-md">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Join FarmOS</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600">Join FarmDirect</p>
               <h2 className="mt-1 text-3xl font-bold text-slate-900 dark:text-white">Create your farm account</h2>
               <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">
                 Sign up and immediately unlock 250 Kisan Coins (worth ₹250) for your next order.

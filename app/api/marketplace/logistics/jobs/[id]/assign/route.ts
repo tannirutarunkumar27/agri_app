@@ -124,6 +124,6 @@ export async function POST(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error assigning transporter to job:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to assign transporter' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

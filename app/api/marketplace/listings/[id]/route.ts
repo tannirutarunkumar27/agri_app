@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server'
 import { query, queryOne, execute } from '@/lib/db'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params
+    const session = await getSessionFromCookies()
 
     // Increment view count
     await execute('UPDATE market_listings SET views_count = views_count + 1 WHERE id = $1', [id])
@@ -12,6 +14,8 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     if (!row) {
       return NextResponse.json({ success: false, error: 'Produce listing not found' }, { status: 404 })
     }
+
+    const isOwnerOrAdmin = Boolean(session && (session.userId === row.seller_id || session.role === 'admin'))
 
     let parsedImages = []
     try {
@@ -24,7 +28,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       id: row.id,
       sellerId: row.seller_id,
       sellerName: row.seller_name,
-      sellerPhone: row.seller_phone,
+      sellerPhone: isOwnerOrAdmin
+        ? row.seller_phone
+        : (row.seller_phone ? row.seller_phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : ''),
       sellerVillage: row.seller_village,
       sellerDistrict: row.seller_district,
       sellerState: row.seller_state,
@@ -65,7 +71,9 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const inquiries = inquiryRows.map((iq) => ({
       id: iq.id,
       buyerName: iq.buyer_name,
-      buyerPhone: iq.buyer_phone,
+      buyerPhone: isOwnerOrAdmin
+        ? iq.buyer_phone
+        : (iq.buyer_phone ? iq.buyer_phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : ''),
       buyerType: iq.buyer_type,
       buyerLocation: iq.buyer_location,
       offeredPricePerUnit: Number(iq.offered_price_per_unit),
@@ -111,19 +119,28 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     })
   } catch (error: any) {
     console.error('Error fetching listing details:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch listing details' }, { status: 500 })
   }
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await context.params
-    const body = await request.json()
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to update this listing.' }, { status: 401 })
+    }
 
-    const listing = await queryOne('SELECT * FROM market_listings WHERE id = $1', [id])
+    const { id } = await context.params
+    const listing = await queryOne<any>('SELECT * FROM market_listings WHERE id = $1', [id])
     if (!listing) {
       return NextResponse.json({ success: false, error: 'Listing not found' }, { status: 404 })
     }
+
+    if (session.role !== 'admin' && session.userId !== listing.seller_id) {
+      return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to modify this listing.' }, { status: 403 })
+    }
+
+    const body = await request.json()
 
     // Optional status update
     if (body.status) {
@@ -144,6 +161,6 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     })
   } catch (error: any) {
     console.error('Error updating listing:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to update listing' }, { status: 500 })
   }
 }

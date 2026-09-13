@@ -151,7 +151,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/market/advisor error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to evaluate sell/hold decision' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

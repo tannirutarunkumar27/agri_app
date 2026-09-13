@@ -10,12 +10,9 @@ export async function PATCH(request: Request) {
     const session = await getSessionFromCookies()
     const body = await request.json()
 
-    // Authorization: only admin or demo-admin
-    if (session && session.role !== 'admin' && !session.userId.includes('admin')) {
-      // In development mode allow if no admin session, but check in production
-      if (process.env.NODE_ENV === 'production' && session.role !== 'admin') {
-        return NextResponse.json({ success: false, error: 'Unauthorized. Admin privileges required.' }, { status: 403 })
-      }
+    // Authorization: strict admin role check
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Admin privileges required.' }, { status: 403 })
     }
 
     const transporterId = sanitizeText(body.transporterId)
@@ -66,6 +63,6 @@ export async function PATCH(request: Request) {
     })
   } catch (error: any) {
     console.error('Error updating transporter verification:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to update verification' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to update verification' }, { status: 500 })
   }
 }

@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     const questions = await query<any>(sql, params)
     return NextResponse.json({ success: true, count: questions.length, questions })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process question request' }, { status: 500 })
   }
 }
 
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
         cleanQuestion,
         cleanAskedBy,
         expertAnswer,
-        'Dr. Sharma (FarmOS Senior Agri-Consultant)'
+        'Dr. Sharma (FarmDirect Senior Agri-Consultant)'
       ]
     )
 
@@ -87,6 +87,6 @@ export async function POST(request: Request) {
       questionId
     })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process question request' }, { status: 500 })
   }
 }

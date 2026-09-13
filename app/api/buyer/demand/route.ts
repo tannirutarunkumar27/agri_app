@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query, queryOne } from '@/lib/db'
-import { getSessionFromCookies } from '@/lib/auth'
+import { getSessionFromCookies, hashPassword } from '@/lib/auth'
+import crypto from 'node:crypto'
 
 export const dynamic = 'force-dynamic'
 
@@ -88,55 +89,65 @@ export async function GET(request: NextRequest) {
       LIMIT $${pIdx}
     `
 
-    const rows = await query(sql, params)
+    const rows = await query<any>(sql, params)
+
+    const demands = rows.map((r: any) => ({
+      id: r.id,
+      buyer_id: r.buyer_id,
+      buyer_name: r.buyer_name,
+      buyer_phone: r.buyer_phone ? r.buyer_phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : '',
+      company_name: r.company_name,
+      business_type: r.business_type,
+      verification_level: r.verification_level,
+      commodity_id: r.commodity_id,
+      commodity_name: r.commodity_name,
+      commodity_category: r.commodity_category,
+      variety_id: r.variety_id,
+      variety_name: r.variety_name,
+      grade_id: r.grade_id,
+      grade_name: r.grade_name,
+      grade_code: r.grade_code,
+      required_quantity: Number(r.required_quantity),
+      quantity_unit: r.quantity_unit,
+      minimum_quantity: Number(r.minimum_quantity),
+      filled_quantity: Number(r.filled_quantity || 0),
+      target_price_per_unit: Number(r.target_price_per_unit),
+      maximum_price_per_unit: Number(r.maximum_price_per_unit),
+      required_from_date: r.required_from_date,
+      required_until_date: r.required_until_date,
+      delivery_location: r.delivery_location,
+      delivery_latitude: r.delivery_latitude ? Number(r.delivery_latitude) : null,
+      delivery_longitude: r.delivery_longitude ? Number(r.delivery_longitude) : null,
+      delivery_radius_km: r.delivery_radius_km ? Number(r.delivery_radius_km) : 100,
+      delivery_preference: r.delivery_preference,
+      quality_requirements: r.quality_requirements,
+      notes: r.notes,
+      status: r.status,
+      expires_at: r.expires_at,
+      created_at: r.created_at,
+      updated_at: r.updated_at
+    }))
+
+    // Calculate aggregated summary statistics
+    const activeDemands = demands.filter(d => d.status === 'ACTIVE')
+    const totalRequiredVolume = activeDemands.reduce((acc, d) => acc + d.required_quantity, 0)
+    const averageTargetPrice = activeDemands.length > 0
+      ? activeDemands.reduce((acc, d) => acc + d.target_price_per_unit, 0) / activeDemands.length
+      : 0
 
     return NextResponse.json({
       success: true,
-      count: rows.length,
-      demands: rows.map((r: any) => ({
-        id: r.id,
-        buyer_id: r.buyer_id,
-        buyer_name: r.buyer_name,
-        buyer_phone: r.buyer_phone,
-        company_name: r.company_name || `${r.buyer_name}'s Enterprise`,
-        business_type: r.business_type || 'Wholesale Buyer & Processor',
-        verification_level: r.verification_level || 'VERIFIED',
-        buyer_rating: Number(r.buyer_rating || 4.8),
-        buyer_completed_trades: Number(r.buyer_completed_trades || 12),
-        commodity_id: r.commodity_id,
-        commodity_name: r.commodity_name,
-        commodity_category: r.commodity_category,
-        variety_id: r.variety_id,
-        variety_name: r.variety_name || 'All Standard Varieties',
-        grade_id: r.grade_id,
-        grade_name: r.grade_name || 'FAQ',
-        required_quantity: Number(r.required_quantity),
-        quantity_unit: r.quantity_unit,
-        minimum_quantity: Number(r.minimum_quantity),
-        filled_quantity: Number(r.filled_quantity),
-        remaining_quantity: Math.max(0, Number(r.remaining_quantity)),
-        target_price_per_unit: Number(r.target_price_per_unit),
-        maximum_price_per_unit: Number(r.maximum_price_per_unit),
-        required_from_date: r.required_from_date,
-        required_until_date: r.required_until_date,
-        delivery_location: r.delivery_location,
-        delivery_latitude: r.delivery_latitude ? Number(r.delivery_latitude) : null,
-        delivery_longitude: r.delivery_longitude ? Number(r.delivery_longitude) : null,
-        delivery_radius_km: Number(r.delivery_radius_km || 100),
-        delivery_preference: r.delivery_preference,
-        quality_requirements: r.quality_requirements,
-        notes: r.notes,
-        status: r.status,
-        expires_at: r.expires_at,
-        is_expired: new Date(r.expires_at) < new Date(),
-        matching_farmers_count: Number(r.matching_farmers_count || 0),
-        created_at: r.created_at
-      }))
+      data: demands,
+      summary: {
+        total_active_demands: activeDemands.length,
+        total_procurement_volume_quintals: totalRequiredVolume,
+        average_target_price_inr: Math.round(averageTargetPrice)
+      }
     })
-  } catch (error: any) {
-    console.error('API /api/buyer/demand GET error:', error)
+  } catch (err: any) {
+    console.error('Error fetching buyer demand requests:', err)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to list buyer demands' },
+      { success: false, error: 'Failed to list buyer demands' },
       { status: 500 }
     )
   }
@@ -145,9 +156,16 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized: Please log in to post a buyer demand request.' },
+        { status: 401 }
+      )
+    }
+
     const body = await request.json()
 
-    const buyerId = body.buyer_id || session?.userId || session?.id || 'usr-buyer-agro'
+    const buyerId = session.role === 'admin' ? (body.buyer_id || session.userId) : session.userId
     const commodityId = body.commodity_id
     const varietyId = body.variety_id || null
     const gradeId = body.grade_id || null
@@ -193,12 +211,12 @@ export async function POST(request: NextRequest) {
     // Ensure user exists
     const userCheck = await queryOne('SELECT id FROM users WHERE id = $1', [buyerId])
     if (!userCheck) {
-      // Create user if not existing
+      const { hash, salt } = hashPassword(crypto.randomUUID())
       await query(
         `INSERT INTO users (id, name, phone, password_hash, role) 
-         VALUES ($1, $2, $3, 'pbkdf2_demo_hash', 'buyer')
+         VALUES ($1, $2, $3, $4, 'buyer')
          ON CONFLICT (id) DO NOTHING`,
-        [buyerId, body.buyer_name || 'Commercial Procurement Hub', body.buyer_phone || '9876543210']
+        [buyerId, session.name || body.buyer_name || 'Commercial Procurement Hub', session.phone || body.buyer_phone || '9876543210', `${hash}:${salt}`]
       )
     }
 
@@ -228,12 +246,11 @@ export async function POST(request: NextRequest) {
         $9, $10,
         $11, $12,
         $13, $14, $15, $16,
-        $17, $18, $19, 'OPEN', $20
-      )
-      RETURNING *
+        $17, $18, $19, 'ACTIVE', $20
+      ) RETURNING *;
     `
 
-    const insertedRows = await query(insertSql, [
+    const params = [
       demandId,
       buyerId,
       commodityId,
@@ -247,24 +264,26 @@ export async function POST(request: NextRequest) {
       requiredFromDate,
       requiredUntilDate,
       deliveryLocation,
-      body.delivery_latitude || null,
-      body.delivery_longitude || null,
+      body.delivery_latitude ? Number(body.delivery_latitude) : null,
+      body.delivery_longitude ? Number(body.delivery_longitude) : null,
       deliveryRadiusKm,
       deliveryPreference,
       qualityRequirements,
       notes,
       expiresAt.toISOString()
-    ])
+    ]
+
+    const newDemand = await queryOne(insertSql, params)
 
     return NextResponse.json({
       success: true,
-      message: 'Buyer demand request published successfully.',
-      demand: insertedRows[0]
+      message: 'Buyer procurement demand published successfully.',
+      data: newDemand
     })
-  } catch (error: any) {
-    console.error('API /api/buyer/demand POST error:', error)
+  } catch (err: any) {
+    console.error('Error creating buyer demand request:', err)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to publish buyer demand' },
+      { success: false, error: 'Failed to publish buyer demand' },
       { status: 500 }
     )
   }

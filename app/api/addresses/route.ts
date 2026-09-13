@@ -6,8 +6,10 @@ import { normalizeAndValidatePhone, validatePinCode, sanitizeText } from '@/lib/
 export async function GET(request: Request) {
   try {
     const session = await getSessionFromCookies()
-    const { searchParams } = new URL(request.url)
-    const userId = session?.userId || searchParams.get('userId') || 'farmer-demo'
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view addresses.' }, { status: 401 })
+    }
+    const userId = session.userId
 
     const rows = await query<any>(
       'SELECT * FROM addresses WHERE user_id = $1 ORDER BY is_default DESC, created_at DESC',
@@ -23,15 +25,19 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, count: addresses.length, addresses })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Addresses GET error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to retrieve addresses' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
     const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to save an address.' }, { status: 401 })
+    }
+    const userId = session.userId
     const body = await request.json()
-    const userId = session?.userId || body.userId || 'farmer-demo'
 
     const { fullName, phone, addressType, street, village, district, state, pincode, instructions, isDefault } = body
 
@@ -77,6 +83,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, message: 'Address saved successfully', addressId })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Addresses POST error:', error)
+    return NextResponse.json({ success: false, error: 'Failed to save address' }, { status: 500 })
   }
 }

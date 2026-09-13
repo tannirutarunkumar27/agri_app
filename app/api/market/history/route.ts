@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/market/history error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch price history' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

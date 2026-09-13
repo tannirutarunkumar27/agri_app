@@ -42,7 +42,7 @@ function OrderSuccessContent() {
             </div>
             <h1 className="mt-4 text-2xl font-extrabold sm:text-3xl">Order Placed Successfully!</h1>
             <p className="mt-2 text-sm text-emerald-100">
-              Thank you for ordering with FarmOS Fertile Store. Your agricultural inputs are being prepared.
+              Thank you for ordering with FarmDirect Fertile Store. Your agricultural inputs are being prepared.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <div className="inline-flex items-center gap-2 rounded-full bg-emerald-950/60 px-4 py-1.5 font-mono text-xs font-bold text-lime-300">
@@ -172,7 +172,7 @@ function OrderSuccessContent() {
                   href="/"
                   className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-5 py-3 text-center text-xs font-bold text-white hover:bg-emerald-800"
                 >
-                  <span>FarmOS Dashboard</span>
+                  <span>FarmDirect Dashboard</span>
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { query, runTransaction } from '@/lib/db'
 import { normalizeAndValidatePhone, validatePinCode, validateQuantity, sanitizeText } from '@/lib/validation'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
@@ -223,7 +224,7 @@ export async function POST(request: Request) {
   } catch (error: any) {
     console.error('ACID Order Placement Error (Rolled back):', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to process order' },
+      { success: false, error: 'Internal server error' },
       { status: 400 }
     )
   }
@@ -231,20 +232,39 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view store orders.' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
-    const phone = searchParams.get('phone')
     const id = searchParams.get('id')
 
     let sql = 'SELECT * FROM orders'
     const params: any[] = []
 
-    if (id) {
-      sql += ' WHERE id = $1'
-      params.push(id)
-    } else if (phone) {
-      const cleanPhone = phone.replace(/\D/g, '').slice(-10)
-      sql += ' WHERE user_phone LIKE $1'
-      params.push(`%${cleanPhone}%`)
+    if (session.role === 'admin') {
+      const phone = searchParams.get('phone')
+      if (id) {
+        sql += ' WHERE id = $1'
+        params.push(id)
+      } else if (phone) {
+        const cleanPhone = phone.replace(/\D/g, '').slice(-10)
+        sql += ' WHERE user_phone LIKE $1'
+        params.push(`%${cleanPhone}%`)
+      }
+    } else {
+      const userPhone = (session.phone || '').replace(/\D/g, '').slice(-10)
+      if (!userPhone) {
+        return NextResponse.json({ success: true, count: 0, orders: [] })
+      }
+      if (id) {
+        sql += ' WHERE id = $1 AND user_phone LIKE $2'
+        params.push(id, `%${userPhone}%`)
+      } else {
+        sql += ' WHERE user_phone LIKE $1'
+        params.push(`%${userPhone}%`)
+      }
     }
 
     sql += ' ORDER BY created_at DESC LIMIT 50'
@@ -290,6 +310,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, count: populatedOrders.length, orders: populatedOrders })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    console.error('Error fetching store orders:', error)
+    return NextResponse.json({ success: false, error: 'Failed to retrieve orders' }, { status: 500 })
   }
 }

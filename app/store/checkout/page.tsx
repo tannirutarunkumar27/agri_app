@@ -202,7 +202,7 @@ export default function CheckoutPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <Link href="/store" className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
             <ArrowLeft className="h-4 w-4" />
-            <span className="text-sm font-semibold">FarmOS Store</span>
+            <span className="text-sm font-semibold">FarmDirect Store</span>
           </Link>
 
           <div className="flex items-center gap-2 text-slate-800 dark:text-white">
@@ -734,7 +734,7 @@ export default function CheckoutPage() {
               </button>
 
               <p className="mt-2 text-center text-[11px] text-slate-500">
-                By placing your order, you agree to FarmOS terms of agricultural supply & label usage conditions.
+                By placing your order, you agree to FarmDirect terms of agricultural supply & label usage conditions.
               </p>
 
               {/* Flipkart SuperCoins style: Kisan Coins Redemption Box */}

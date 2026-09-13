@@ -84,6 +84,6 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error submitting transporter rating:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to submit rating' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/admin/market/status error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch market data quality status' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

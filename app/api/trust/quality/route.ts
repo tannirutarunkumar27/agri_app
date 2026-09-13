@@ -8,9 +8,15 @@ import {
   QualityGrade
 } from '@/lib/trust/quality-records-service'
 import { evaluateQualityVarianceRisk } from '@/lib/trust/risk-rules'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view quality records.' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const lotId = searchParams.get('lotId')
     const orderId = searchParams.get('orderId')
@@ -31,18 +37,22 @@ export async function GET(request: Request) {
     )
   } catch (error: any) {
     console.error('[API /api/trust/quality GET] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to retrieve quality records' }, { status: 500 })
   }
 }
 
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to record quality inspections.' }, { status: 401 })
+    }
+
     const body = await request.json()
     const {
       lotId,
       orderId,
       listingId,
-      inspectorId,
       inspectionSource,
       commodityName,
       variety,
@@ -66,6 +76,8 @@ export async function POST(request: Request) {
       inspectionImages,
       notes
     } = body
+
+    const inspectorId = session.role === 'admin' ? (body.inspectorId || session.userId) : session.userId
 
     if (!lotId || !inspectionSource || !commodityName || !grade) {
       return NextResponse.json(
@@ -106,14 +118,20 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, record })
   } catch (error: any) {
     console.error('[API /api/trust/quality POST] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to create quality record' }, { status: 500 })
   }
 }
 
 export async function PATCH(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to update quality records.' }, { status: 401 })
+    }
+
     const body = await request.json()
-    const { recordId, deliveredQuantityKg, inspectorId } = body
+    const { recordId, deliveredQuantityKg } = body
+    const inspectorId = session.role === 'admin' ? (body.inspectorId || session.userId) : session.userId
 
     if (!recordId || deliveredQuantityKg === undefined) {
       return NextResponse.json(
@@ -134,6 +152,6 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, record: updated, riskFlag })
   } catch (error: any) {
     console.error('[API /api/trust/quality PATCH] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to update quality record' }, { status: 500 })
   }
 }

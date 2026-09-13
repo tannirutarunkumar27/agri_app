@@ -586,7 +586,7 @@ export default function RetailerPartnerPortal() {
                       <div className="h-6 w-6 border-2 border-white rounded-xs"></div>
                       <div className="h-6 w-6 border-2 border-white rounded-xs"></div>
                     </div>
-                    <p className="text-[9px] font-mono text-center">FARMOS-KENDRA-8842</p>
+                    <p className="text-[9px] font-mono text-center">FARMDIRECT-KENDRA-8842</p>
                     <div className="flex justify-between">
                       <div className="h-6 w-6 border-2 border-white rounded-xs"></div>
                       <div className="h-6 w-6 bg-lime-400 rounded-xs"></div>
@@ -624,10 +624,10 @@ export default function RetailerPartnerPortal() {
                 <Award className="h-6 w-6" />
               </div>
               <h3 className="mt-4 text-lg font-bold text-slate-900 dark:text-white">
-                How FarmOS Digitally Arms You
+                How FarmDirect Digitally Arms You
               </h3>
               <p className="mt-2 text-xs text-slate-500">
-                Traditional platforms try to cut you out. FarmOS makes you a digital financial services & agronomy hub.
+                Traditional platforms try to cut you out. FarmDirect makes you a digital financial services & agronomy hub.
               </p>
 
               <div className="mt-4 space-y-3">

@@ -40,7 +40,7 @@ export async function GET() {
     })
   } catch (error: any) {
     console.error('Error listing transporter vehicles:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to list vehicles' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -90,6 +90,6 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error adding vehicle:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to add vehicle' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

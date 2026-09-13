@@ -100,7 +100,7 @@ export async function GET(request: Request) {
     })
   } catch (error: any) {
     console.error('Error discovering transporters:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to discover transporters' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -173,6 +173,6 @@ export async function POST(request: Request) {
     })
   } catch (error: any) {
     console.error('Error creating transporter profile:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to create transporter profile' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

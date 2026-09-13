@@ -77,22 +77,14 @@ export async function GET(request: NextRequest) {
       }))
     }
 
-    // Default fallback if no specific supply provided
+    // If no specific supply or active listings exist, return empty match set
     if (supplyItems.length === 0) {
-      supplyItems.push({
-        id: 'default-supply-redgram',
-        farmerId: farmerId || 'farmer-demo',
-        farmerName: 'Demo Farmer',
-        commodityId: 'comm-redgram',
-        commodityName: 'Red Gram / Pigeon Pea (Tur)',
-        availableQuantity: 40,
-        unit: 'Quintal',
-        askingPricePerUnit: 7350,
-        location: 'Warangal / Telangana Region',
-        latitude: 17.9689,
-        longitude: 79.5941,
-        reliabilityRating: 5.0,
-        completedOrdersCount: 8
+      return NextResponse.json({
+        success: true,
+        total_matches: 0,
+        supply_evaluated_count: 0,
+        opportunities: [],
+        message: 'No active produce listings found to match against buyer procurement requests.'
       })
     }
 
@@ -272,7 +264,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/matching/farmer-opportunities error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to match buyer opportunities' },
+      { success: false, error: 'Failed to match buyer opportunities' },
       { status: 500 }
     )
   }

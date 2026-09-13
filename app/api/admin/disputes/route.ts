@@ -38,7 +38,7 @@ export async function GET(request: Request) {
     })
   } catch (error: any) {
     console.error('[API /api/admin/disputes GET] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process dispute request' }, { status: 500 })
   }
 }
 
@@ -94,6 +94,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, dispute: resolved })
   } catch (error: any) {
     console.error('[API /api/admin/disputes POST] Error:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process dispute request' }, { status: 500 })
   }
 }

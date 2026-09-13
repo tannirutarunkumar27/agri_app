@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   } catch (error: any) {
     console.error('API /api/market/liquidity error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch market liquidity metrics' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -56,7 +56,7 @@ export async function GET(
   } catch (error: any) {
     console.error('API /api/buyer/demand/[id] GET error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to fetch demand request' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }
@@ -133,7 +133,7 @@ export async function PATCH(
   } catch (error: any) {
     console.error('API /api/buyer/demand/[id] PATCH error:', error)
     return NextResponse.json(
-      { success: false, error: error.message || 'Failed to update demand request' },
+      { success: false, error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -1,5 +1,5 @@
 /**
- * FarmOS Validation and Sanitization Utilities
+ * FarmDirect Validation and Sanitization Utilities
  * Enforces data integrity, Indian postal/phone standards, and XSS defense
  */
 

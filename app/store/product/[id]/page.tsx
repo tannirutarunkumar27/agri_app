@@ -466,7 +466,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </div>
 
               <div className="mt-1 text-[11px] text-slate-500">
-                Ships from: <strong>FarmOS Regional Hub</strong>
+                Ships from: <strong>FarmDirect Regional Hub</strong>
                 <br />
                 Sold by: <strong>{product.seller}</strong>
               </div>

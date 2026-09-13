@@ -178,6 +178,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ success: true, count: orders.length, orders })
   } catch (error: any) {
     console.error('Error fetching produce orders:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch produce orders.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

@@ -130,6 +130,6 @@ export async function GET(request: Request) {
     })
   } catch (error: any) {
     console.error('Error fetching products from PostgreSQL database:', error)
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch products' }, { status: 500 })
   }
 }

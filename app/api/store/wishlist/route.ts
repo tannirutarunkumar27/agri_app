@@ -64,7 +64,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ success: true, count: items.length, items, userId })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process wishlist request' }, { status: 500 })
   }
 }
 
@@ -96,6 +96,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, action: 'added', inWishlist: true })
     }
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process wishlist request' }, { status: 500 })
   }
 }

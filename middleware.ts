@@ -2,7 +2,17 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 const AUTH_COOKIE_NAME = 'farmos_session'
-const AUTH_SECRET = process.env.AUTH_SECRET || 'farmos-super-secret-production-salt-key-2026'
+
+function getMiddlewareSecret(): string {
+  const secret = process.env.AUTH_SECRET || process.env.JWT_SECRET
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL SECURITY ERROR: Neither AUTH_SECRET nor JWT_SECRET environment variable is configured in production.')
+    }
+    return 'farmdirect-dev-only-local-secret-key-2026'
+  }
+  return secret
+}
 
 function base64UrlDecode(str: string): string {
   let base64 = str.replace(/-/g, '+').replace(/_/g, '/')
@@ -21,7 +31,7 @@ async function verifyToken(token: string) {
     const encoder = new TextEncoder()
     const key = await crypto.subtle.importKey(
       'raw',
-      encoder.encode(AUTH_SECRET),
+      encoder.encode(getMiddlewareSecret()),
       { name: 'HMAC', hash: 'SHA-256' },
       false,
       ['verify']

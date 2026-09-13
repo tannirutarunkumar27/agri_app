@@ -15,7 +15,7 @@ export async function GET() {
     }))
     return NextResponse.json({ success: true, count: formatted.length, coupons: formatted })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process coupon request' }, { status: 500 })
   }
 }
 
@@ -65,6 +65,6 @@ export async function POST(request: Request) {
       }
     })
   } catch (error: any) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to process coupon request' }, { status: 500 })
   }
 }

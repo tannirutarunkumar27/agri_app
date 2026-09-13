@@ -11,6 +11,11 @@ interface Params {
 
 export async function GET(request: Request, props: Params) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to view produce order details.' }, { status: 401 })
+    }
+
     const params = await props.params
     const orderId = params.id
 
@@ -42,6 +47,11 @@ export async function GET(request: Request, props: Params) {
 
     if (!order) {
       return NextResponse.json({ success: false, error: 'Produce order not found.' }, { status: 404 })
+    }
+
+    // Verify requester is buyer, seller, or admin
+    if (session.role !== 'admin' && session.userId !== order.farmer_id && session.userId !== order.buyer_id) {
+      return NextResponse.json({ success: false, error: 'Forbidden: You do not have permission to view this produce order.' }, { status: 403 })
     }
 
     const logs = await query<any>(
@@ -129,7 +139,7 @@ export async function GET(request: Request, props: Params) {
     })
   } catch (error: any) {
     console.error('Error fetching produce order detail:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to fetch produce order.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch produce order.' }, { status: 500 })
   }
 }
 
@@ -497,6 +507,6 @@ export async function PATCH(request: Request, props: Params) {
     return NextResponse.json({ success: false, error: 'Unhandled action.' }, { status: 400 })
   } catch (error: any) {
     console.error('Error updating produce order:', error)
-    return NextResponse.json({ success: false, error: error.message || 'Failed to update produce order.' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to update produce order.' }, { status: 500 })
   }
 }
