@@ -3,7 +3,7 @@
 import React, { use, useState, useEffect } from 'react'
 import Link from 'next/link'
 import { 
-  ShieldCheck, 
+  AlertTriangle,
   QrCode, 
   MapPin, 
   Calendar, 
@@ -65,7 +65,7 @@ export default function PublicTracePage({ params }: TracePageProps) {
       <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
         <div className="max-w-md w-full bg-white rounded-2xl p-6 border border-slate-200 text-center space-y-4 shadow-sm">
           <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mx-auto">
-            <ShieldCheck className="w-6 h-6" />
+            <AlertTriangle className="w-6 h-6" />
           </div>
           <h1 className="text-lg font-bold text-slate-900">Lot Verification Record</h1>
           <p className="text-xs text-slate-600 leading-relaxed">

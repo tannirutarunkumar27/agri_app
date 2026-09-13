@@ -42,12 +42,12 @@ const WISHLIST_STORAGE_KEY = 'farmos_wishlist_v1'
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [cart, setCart] = useState<Record<string, number>>({})
-  const [appliedCoupon, setAppliedCoupon] = useState<string | null>('KISAN10')
+  const [appliedCoupon, setAppliedCoupon] = useState<string | null>(null)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [farmerCoins, setFarmerCoins] = useState(150) // 150 Kisan Coins = ₹150 (Flipkart SuperCoins style)
+  const [farmerCoins, setFarmerCoins] = useState(150) // 150 Kisan Coins = ₹150
   const [redeemCoins, setRedeemCoins] = useState(false)
-  const [wishlist, setWishlist] = useState<string[]>(['neem-shield'])
+  const [wishlist, setWishlist] = useState<string[]>([])
 
   // Initialize from localStorage
   useEffect(() => {
@@ -59,7 +59,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       if (storedCart) {
         setCart(JSON.parse(storedCart))
       } else {
-        setCart({ 'npk-191919': 2, 'neem-shield': 1 })
+        setCart({})
       }
       if (storedCoupon !== null) {
         setAppliedCoupon(storedCoupon || null)
@@ -71,7 +71,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         setWishlist(JSON.parse(storedWishlist))
       }
     } catch {
-      setCart({ 'npk-191919': 2, 'neem-shield': 1 })
+      setCart({})
     }
     setIsLoaded(true)
   }, [])

@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getAllVerifications, reviewVerification, ReviewAction } from '@/lib/trust/verification-service'
 import { query } from '@/lib/db'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden: Admin privileges required.' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as any
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!, 10) : 50
@@ -28,8 +34,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden: Admin privileges required.' }, { status: 403 })
+    }
+
     const body = await request.json()
-    const { verificationId, action, adminId = 'admin-system', rejectionReason, notes } = body
+    const { verificationId, action, adminId = session.userId || 'admin-system', rejectionReason, notes } = body
 
     if (!verificationId || !action) {
       return NextResponse.json(

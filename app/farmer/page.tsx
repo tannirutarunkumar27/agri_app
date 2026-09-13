@@ -30,14 +30,14 @@ export default function FarmerIntelligencePage() {
     async function loadData() {
       try {
         const [pricesRes, ordersRes] = await Promise.all([
-          fetch('/api/market/latest?limit=6'),
-          fetch('/api/marketplace/orders')
+          fetch('/api/market/prices?limit=6'),
+          fetch('/api/marketplace/orders?role=farmer')
         ])
         const pricesJson = await pricesRes.json()
         const ordersJson = await ordersRes.json()
 
-        if (pricesJson.success) setMarketPrices(pricesJson.data || [])
-        if (ordersJson.success) setActiveOrders(ordersJson.data || [])
+        if (pricesJson.success) setMarketPrices(pricesJson.prices || pricesJson.data || [])
+        if (ordersJson.success) setActiveOrders(ordersJson.orders || ordersJson.data || [])
       } catch (err) {
         console.error('Farmer intelligence load error:', err)
       } finally {
@@ -147,7 +147,9 @@ export default function FarmerIntelligencePage() {
                       <MapPin className="h-3 w-3 text-slate-500" />
                       {p.market_name || 'Regional APMC'}
                     </span>
-                    <span className="text-emerald-400 text-[11px] font-medium">+3.2% trend</span>
+                    <span className="text-emerald-400 text-[11px] font-medium">
+                      {p.minimum_price && p.maximum_price ? `Range ₹${p.minimum_price} - ₹${p.maximum_price}` : '+3.2% trend'}
+                    </span>
                   </div>
                 </div>
               ))
@@ -195,18 +197,18 @@ export default function FarmerIntelligencePage() {
                 <div key={ord.id} className="rounded-lg border border-slate-800 bg-slate-950/70 p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white text-sm">{ord.crop_name}</span>
+                      <span className="font-bold text-white text-sm">{ord.cropName || ord.crop_name}</span>
                       <span className="rounded bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-emerald-400">
                         {ord.id}
                       </span>
                     </div>
                     <div className="text-slate-400 mt-0.5">
-                      Quantity: {ord.quantity} {ord.unit} • Agreed: ₹{ord.agreed_price_per_unit}/{ord.unit}
+                      Quantity: {ord.quantity} {ord.unit} • Agreed: ₹{ord.agreedPricePerUnit || ord.agreed_price_per_unit}/{ord.unit}
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="rounded bg-emerald-500/20 text-emerald-300 px-2.5 py-1 text-xs font-semibold border border-emerald-500/30">
-                      {ord.fulfillment_status}
+                      {ord.fulfillmentStatus || ord.fulfillment_status}
                     </span>
                     <Link
                       href={`/admin/industry-4/traceability?lotId=${ord.id}`}

@@ -6,7 +6,7 @@ import { UserSession } from './auth'
 interface AuthContextType {
   user: UserSession | null
   isLoading: boolean
-  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string; message?: string }>
+  login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string; message?: string; user?: UserSession }>
   register: (data: {
     name: string
     phone: string
@@ -57,7 +57,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json()
       if (data.success && data.user) {
         setUser(data.user)
-        return { success: true, message: data.message }
+        return { success: true, message: data.message, user: data.user }
       }
       return { success: false, error: data.error || 'Login failed' }
     } catch (err: any) {

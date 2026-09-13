@@ -139,6 +139,32 @@ export default function Home() {
                 <span>My Orders</span>
               </Link>
 
+              {user && (
+                <Link
+                  href={
+                    user.role?.toLowerCase() === 'admin'
+                      ? '/admin'
+                      : user.role?.toLowerCase() === 'buyer'
+                      ? '/buyer'
+                      : user.role?.toLowerCase() === 'transporter'
+                      ? '/transporter/dashboard'
+                      : '/farmer'
+                  }
+                  className="flex items-center gap-1.5 rounded-xl bg-slate-900 px-3 py-2 text-xs font-bold text-emerald-400 border border-emerald-500/30 shadow-sm hover:bg-slate-800 transition dark:bg-emerald-950 dark:border-emerald-700"
+                >
+                  <Layers className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>
+                    {user.role?.toLowerCase() === 'admin'
+                      ? 'Admin Console'
+                      : user.role?.toLowerCase() === 'buyer'
+                      ? 'Buyer Desk'
+                      : user.role?.toLowerCase() === 'transporter'
+                      ? 'Logistics'
+                      : 'Farmer Center'}
+                  </span>
+                </Link>
+              )}
+
               {user ? (
                 <Link
                   href="/account"

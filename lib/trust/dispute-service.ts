@@ -511,8 +511,8 @@ export async function getDisputes(filter: {
   }
 
   if (filter.userId) {
-    params.push(filter.userId)
-    whereClauses.push(`(d.initiated_by = $${params.length} OR d.respondent_id = $${params.length})`)
+    params.push(filter.userId, filter.userId)
+    whereClauses.push(`(d.initiated_by = $${params.length - 1} OR d.respondent_id = $${params.length})`)
   }
 
   if (filter.priority) {

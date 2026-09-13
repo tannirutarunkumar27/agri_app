@@ -2,9 +2,15 @@ import { NextResponse } from 'next/server'
 import { getDisputes, resolveDispute, DisputeResolution } from '@/lib/trust/dispute-service'
 import { getRiskFlags, resolveRiskFlag } from '@/lib/trust/risk-rules'
 import { query, queryOne } from '@/lib/db'
+import { getSessionFromCookies } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden: Admin privileges required.' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status') as any
     const disputes = await getDisputes({ status: status || undefined })
@@ -15,7 +21,7 @@ export async function GET(request: Request) {
         COUNT(*) as total_disputes,
         COUNT(*) FILTER (WHERE status IN ('OPEN', 'UNDER_REVIEW', 'EVIDENCE_REQUIRED')) as active_disputes,
         COUNT(*) FILTER (WHERE status = 'RESOLVED') as resolved_disputes,
-        COALESCE(SUM(disputed_amount) FILTER (WHERE status IN ('OPEN', 'UNDER_REVIEW')), 0) as total_frozen_escrow
+        COALESCE(SUM(claimed_amount) FILTER (WHERE status IN ('OPEN', 'UNDER_REVIEW')), 0) as total_frozen_escrow
       FROM disputes;
     `)
 
@@ -38,6 +44,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    const session = await getSessionFromCookies()
+    if (!session || session.role !== 'admin') {
+      return NextResponse.json({ success: false, error: 'Forbidden: Admin privileges required.' }, { status: 403 })
+    }
+
     const body = await request.json()
     const { 
       type = 'DISPUTE_RESOLUTION', 
@@ -48,7 +59,7 @@ export async function POST(request: Request) {
       settlementAmountFarmer, 
       settlementAmountBuyer, 
       flagStatus,
-      adminId = 'admin-system'
+      adminId = session.userId || 'admin-system'
     } = body
 
     if (type === 'RISK_FLAG_UPDATE') {

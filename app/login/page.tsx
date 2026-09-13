@@ -27,7 +27,18 @@ export default function LoginPage() {
 
     if (res.success) {
       success(res.message || 'Logged in successfully!')
-      router.push('/store')
+      const role = res.user?.role?.toLowerCase()
+      if (role === 'farmer') {
+        router.push('/farmer')
+      } else if (role === 'buyer') {
+        router.push('/buyer')
+      } else if (role === 'transporter') {
+        router.push('/transporter/dashboard')
+      } else if (role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/farmer')
+      }
     } else {
       setErrorMessage(res.error || 'Invalid credentials')
       showError(res.error || 'Login failed')
@@ -50,7 +61,7 @@ export default function LoginPage() {
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md shadow-emerald-900/40">
                   <Leaf className="h-6 w-6" aria-hidden="true" />
                 </span>
-                <span className="text-2xl font-bold">FarmOS</span>
+                <span className="text-2xl font-bold">FarmDirect</span>
               </Link>
               <div className="mt-16 max-w-sm">
                 <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Your field, clearer</p>
@@ -76,7 +87,7 @@ export default function LoginPage() {
           <section className="p-6 sm:p-10">
             <div className="mb-8 md:hidden">
               <Link href="/" className="inline-flex items-center gap-2 text-xl font-bold text-emerald-900 dark:text-emerald-100">
-                <Leaf className="h-6 w-6 text-emerald-600" aria-hidden="true" /> FarmOS
+                <Leaf className="h-6 w-6 text-emerald-600" aria-hidden="true" /> FarmDirect
               </Link>
             </div>
             <div className="max-w-md">
@@ -149,7 +160,7 @@ export default function LoginPage() {
                     </>
                   ) : (
                     <>
-                      Sign in to FarmOS <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                      Sign in to FarmDirect <ArrowRight className="h-4 w-4" aria-hidden="true" />
                     </>
                   )}
                 </button>
@@ -157,7 +168,7 @@ export default function LoginPage() {
 
               <div className="mt-6 flex items-center justify-between border-t border-slate-200 pt-6 dark:border-slate-800">
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  New to FarmOS?{' '}
+                  New to FarmDirect?{' '}
                   <Link href="/create-account" className="font-semibold text-emerald-700 hover:underline dark:text-emerald-400">
                     Create account & get 250 coins
                   </Link>

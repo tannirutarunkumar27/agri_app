@@ -7,12 +7,16 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: Request) {
   try {
     const session = await getSessionFromCookies()
-    const { searchParams } = new URL(request.url)
+    if (!session) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Authentication required to access orders.' }, { status: 401 })
+    }
 
-    const role = searchParams.get('role') // 'farmer' or 'buyer'
+    const { searchParams } = new URL(request.url)
+    const roleParam = searchParams.get('role') // 'farmer' or 'buyer' (used when admin or explicitly specified)
     const status = searchParams.get('status')
-    const userId = session?.userId || searchParams.get('user_id') || ''
-    const userPhone = session?.phone || searchParams.get('phone') || ''
+    const userRole = session.role?.toLowerCase()
+    const userId = session.userId
+    const userPhone = session.phone || ''
 
     let sql = `
       SELECT 
@@ -51,22 +55,31 @@ export async function GET(request: Request) {
     const params: any[] = []
     let pIdx = 1
 
-    if (role === 'farmer') {
-      if (userId || userPhone) {
-        sql += ` AND (o.farmer_id = $${pIdx} OR o.farmer_phone = $${pIdx + 1})`
-        params.push(userId, userPhone)
-        pIdx += 2
+    if (userRole === 'admin') {
+      const targetUserId = searchParams.get('user_id')
+      if (roleParam === 'farmer' && targetUserId) {
+        sql += ` AND o.farmer_id = $${pIdx++}`
+        params.push(targetUserId)
+      } else if (roleParam === 'buyer' && targetUserId) {
+        sql += ` AND o.buyer_id = $${pIdx++}`
+        params.push(targetUserId)
       }
-    } else if (role === 'buyer') {
-      if (userId || userPhone) {
-        sql += ` AND (o.buyer_id = $${pIdx} OR o.buyer_phone = $${pIdx + 1})`
-        params.push(userId, userPhone)
-        pIdx += 2
-      }
-    } else if (userId || userPhone) {
-      sql += ` AND (o.farmer_id = $${pIdx} OR o.buyer_id = $${pIdx} OR o.buyer_phone = $${pIdx + 1} OR o.farmer_phone = $${pIdx + 1})`
+    } else if (userRole === 'farmer' || roleParam === 'farmer') {
+      sql += ` AND (o.farmer_id = $${pIdx} OR o.farmer_phone = $${pIdx + 1})`
       params.push(userId, userPhone)
       pIdx += 2
+    } else if (userRole === 'buyer' || roleParam === 'buyer') {
+      sql += ` AND (o.buyer_id = $${pIdx} OR o.buyer_phone = $${pIdx + 1})`
+      params.push(userId, userPhone)
+      pIdx += 2
+    } else if (userRole === 'transporter') {
+      sql += ` AND (dj.transporter_id = $${pIdx} OR t.phone = $${pIdx + 1})`
+      params.push(userId, userPhone)
+      pIdx += 2
+    } else {
+      sql += ` AND (o.farmer_id = $${pIdx} OR o.buyer_id = $${pIdx + 1} OR o.buyer_phone = $${pIdx + 2} OR o.farmer_phone = $${pIdx + 3})`
+      params.push(userId, userId, userPhone, userPhone)
+      pIdx += 4
     }
 
     if (status && status !== 'all') {

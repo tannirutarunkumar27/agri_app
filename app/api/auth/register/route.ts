@@ -61,11 +61,19 @@ export async function POST(request: Request) {
       }
     }
 
-    const cleanRole = ['transporter', 'buyer', 'admin'].includes((body.role || '').toLowerCase())
-      ? (body.role || '').toLowerCase()
+    const requestedRole = (body.role || '').toLowerCase()
+    if (requestedRole === 'admin') {
+      return NextResponse.json(
+        { success: false, error: 'Administrator accounts cannot be self-registered. Please contact system management.' },
+        { status: 403 }
+      )
+    }
+
+    const cleanRole = ['transporter', 'buyer'].includes(requestedRole)
+      ? requestedRole
       : 'farmer'
 
-    const userId = `${cleanRole}-${Date.now()}`
+    const userId = `${cleanRole}-${crypto.randomUUID()}`
     const { hash, salt } = hashPassword(password)
     const initialCoins = 250
 
@@ -126,7 +134,7 @@ export async function POST(request: Request) {
           ? 'Your transporter account is set up. Add your vehicles and view available delivery jobs.'
           : 'Your account is activated with 250 Kisan Coins welcome bonus.',
         'coin',
-        cleanRole === 'transporter' ? '/transporter/dashboard' : '/store'
+        cleanRole === 'transporter' ? '/transporter/dashboard' : cleanRole === 'buyer' ? '/buyer' : '/farmer'
       ]
     )
 

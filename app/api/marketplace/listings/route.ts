@@ -105,7 +105,7 @@ export async function GET(request: Request) {
         id: r.id,
         sellerId: r.seller_id,
         sellerName: r.seller_name,
-        sellerPhone: r.seller_phone,
+        sellerPhone: r.seller_phone ? r.seller_phone.replace(/(\d{3})\d{4}(\d{3})/, '$1****$2') : '',
         sellerVillage: r.seller_village,
         sellerDistrict: r.seller_district,
         sellerState: r.seller_state,
@@ -153,15 +153,19 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const sessionUser = await getSessionFromCookies()
+    if (!sessionUser) {
+      return NextResponse.json({ success: false, error: 'Unauthorized: Please log in to publish a produce listing.' }, { status: 401 })
+    }
+
     const body = await request.json()
 
-    // Seller info from auth or form fallback
-    const sellerId = sessionUser?.userId || sessionUser?.id || body.sellerId || 'farmer-demo'
-    const sellerName = sanitizeText(sessionUser?.name || body.sellerName || 'Farmer Partner')
-    const sellerPhone = sanitizeText(sessionUser?.phone || body.sellerPhone || '+91 98220 12345')
+    // Seller info from authenticated session
+    const sellerId = sessionUser.userId || sessionUser.id
+    const sellerName = sanitizeText(sessionUser.name || body.sellerName || 'Farmer Partner')
+    const sellerPhone = sanitizeText(sessionUser.phone || body.sellerPhone || '')
     const sellerVillage = sanitizeText(body.sellerVillage || 'Baramati Rural')
-    const sellerDistrict = sanitizeText(body.sellerDistrict || sessionUser?.district || 'Pune')
-    const sellerState = sanitizeText(body.sellerState || sessionUser?.state || 'Maharashtra')
+    const sellerDistrict = sanitizeText(body.sellerDistrict || sessionUser.district || 'Pune')
+    const sellerState = sanitizeText(body.sellerState || sessionUser.state || 'Maharashtra')
 
     const category = sanitizeText(body.category || 'vegetables')
     const cropId = sanitizeText(body.cropId || 'tomato')
