@@ -147,6 +147,14 @@ export default function AdminMarketManagementPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/industry-4"
+              className="rounded-xl bg-slate-900 dark:bg-slate-800 border border-emerald-500/50 hover:border-emerald-400 text-emerald-400 px-3.5 py-2 text-xs font-bold transition shadow-xs flex items-center gap-1.5"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Industry 4.0 Command</span>
+            </Link>
+
             <button
               onClick={handleSync}
               disabled={syncing}

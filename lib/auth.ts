@@ -16,6 +16,8 @@ export interface UserSession {
   primaryCrop?: string
   kisanCoins?: number
   role?: string
+  verificationLevel?: string
+  trustScore?: number
 }
 
 /**

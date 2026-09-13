@@ -49,6 +49,8 @@ export interface SupplyItem {
   moisturePercent?: number
   reliabilityRating?: number // 1 to 5
   completedOrdersCount?: number
+  farmerVerificationLevel?: string
+  farmerTrustScore?: number
 }
 
 export interface DemandRequest {
@@ -340,16 +342,25 @@ export function computeMatchScore(
     positive.push(`✓ Certified organic lot`)
   }
 
-  // 7. RELIABILITY (Weight: 5%)
-  let reliabilityFactor = 0.85
+  // 7. RELIABILITY & TRUST (Weight: 5%)
+  let reliabilityFactor = 0.80
   const rating = supply.reliabilityRating || 5.0
   const pastOrders = supply.completedOrdersCount || 0
+  const trustScore = supply.farmerTrustScore !== undefined ? supply.farmerTrustScore : 65
+  const vLevel = (supply.farmerVerificationLevel || '').toUpperCase()
 
-  if (pastOrders >= 3 && rating >= 4.5) {
+  if (vLevel === 'FULLY_VERIFIED' || trustScore >= 85) {
     reliabilityFactor = 1.0
-    positive.push(`✓ Verified farmer with ${pastOrders} successful marketplace sales`)
-  } else if (rating >= 4.0) {
+    positive.push(`✓ Highly trusted producer (${vLevel || 'Verified'}, Trust Score: ${trustScore}/100)`)
+  } else if (vLevel.includes('VERIFIED') || trustScore >= 70) {
     reliabilityFactor = 0.90
+    positive.push(`✓ Verified producer (${vLevel.replace(/_/g, ' ')}, Trust Score: ${trustScore}/100)`)
+  } else if (pastOrders >= 3 && rating >= 4.5) {
+    reliabilityFactor = 0.88
+    positive.push(`✓ Experienced seller with ${pastOrders} successful marketplace sales`)
+  } else if (vLevel === 'UNVERIFIED' || trustScore < 50) {
+    reliabilityFactor = 0.60
+    caution.push(`⚠ Producer has not completed accreditation verification`)
   }
 
   // CALCULATE WEIGHTED TOTAL SCORE (0 to 100)
@@ -393,3 +404,5 @@ export function computeMatchScore(
     isRecommended: totalScore >= 75
   }
 }
+
+export const calculateMatchScore = computeMatchScore

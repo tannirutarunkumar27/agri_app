@@ -260,12 +260,21 @@ export default function TransporterDashboardPage() {
             </p>
           </div>
 
-          <Link
-            href="/transporter/profile"
-            className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-800"
-          >
-            Manage Fleet Vehicles
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/admin/industry-4"
+              className="rounded-full bg-slate-800 border border-slate-700 px-3.5 py-2 text-xs font-bold text-emerald-400 shadow-sm hover:bg-slate-700 flex items-center gap-1.5"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              Industry 4.0 Logistics SLA
+            </Link>
+            <Link
+              href="/transporter/profile"
+              className="rounded-full bg-blue-700 px-4 py-2 text-xs font-bold text-white shadow-sm hover:bg-blue-800"
+            >
+              Manage Fleet Vehicles
+            </Link>
+          </div>
         </div>
 
         {/* Feedback Alert */}

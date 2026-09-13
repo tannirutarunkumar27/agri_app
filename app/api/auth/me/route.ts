@@ -10,7 +10,7 @@ export async function GET() {
     }
 
     const freshUser = await queryOne<any>(
-      'SELECT id, name, phone, email, district, state, farm_size_acres, primary_crop, kisan_coins, role FROM users WHERE id = $1',
+      'SELECT id, name, phone, email, district, state, farm_size_acres, primary_crop, kisan_coins, role, verification_level, trust_score FROM users WHERE id = $1',
       [session.userId]
     )
 
@@ -30,7 +30,9 @@ export async function GET() {
         farmSizeAcres: Number(freshUser.farm_size_acres),
         primaryCrop: freshUser.primary_crop,
         kisanCoins: freshUser.kisan_coins,
-        role: freshUser.role
+        role: freshUser.role,
+        verificationLevel: freshUser.verification_level || 'UNVERIFIED',
+        trustScore: freshUser.trust_score || 50
       }
     })
   } catch (error: any) {
